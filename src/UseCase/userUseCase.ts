@@ -74,6 +74,7 @@ export async function verifyotp(otp: number, userId: mongoose.Schema.Types.Objec
                 await user.save();
                 return { success: true, message: 'OTP verified successfully' };
             } else {
+                console.log('reched sdhgasgdhgashg')
                 return { success: false, message: 'User not found' };
             }
         } else {
@@ -92,6 +93,7 @@ export async function verifylogin(email: string, password: string): Promise<{ su
         const user = await findUserByEmail(email);
         
         if (!user) {
+            
             // No user found with the given email
             return { success: false, message: 'User not found' };
         }
@@ -126,15 +128,13 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-
-
 // Function to send email
 export const sendEmail = async (email: string, otp: number): Promise<boolean> => {
     try {
         console.log('process.env:',  process.env.EMAIL_USER, process.env.EMAIL_PASS)
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: 'deepakvkn12@gmail.com',
+            to: 'deepakvkn1252@gmail.com',
             subject: 'OTP for verification',
 
             
