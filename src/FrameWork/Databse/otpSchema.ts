@@ -1,11 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface OtpDocument extends Document {
-    otp: number;
-    userId: mongoose.Schema.Types.ObjectId;
-    createdAt: Date;
-    expiresAt: Date;
-}
+import { Otp } from '../../Domain/otpType';
+
+
+export interface OtpDocument extends Otp, Document {}
 
 const OtpSchema: Schema = new Schema({
     otp: { type: Number, required: true },

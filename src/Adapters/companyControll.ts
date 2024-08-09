@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { registerCompany, createOtp, sendEmail,verifyOtp,verifyLogin,getCompany } from '../UseCase/companyUseCase' // Adjust the import paths based on your project structure
 import mongoose from 'mongoose';
+import userJWT from '../FrameWork/utilits/userJwt'
 
 export async function registerCompanyController(req: Request, res: Response): Promise<void> {
     try {
@@ -39,7 +40,7 @@ export async function registerCompanyController(req: Request, res: Response): Pr
 
 
 export async function verifyotpCompanyControll(req: Request, res: Response): Promise<void> {
-    console.log('raeched backend2')
+  
     const { otp, userId } = req.body;
     
 
@@ -61,10 +62,14 @@ export async function verifyotpCompanyControll(req: Request, res: Response): Pro
 
 export async function loginCompanyControll(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body;
-    console.log('raeched company login backend')
+ 
     try {
         const result = await verifyLogin(email, password);
-        res.json(result);
+        if(result.success){
+            const role:string='company'
+            userJWT({res,userId: result.company?._id as string,role});
+            res.json(result);
+        }
     } catch (error) {
         console.error('Error in loginUserControll:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });

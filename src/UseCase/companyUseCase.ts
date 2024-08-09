@@ -94,7 +94,7 @@ export async function verifyLogin(email: string, password: string): Promise<{ su
             return { success: false, message: 'Incorrect password' };
         }
 
-        return { success: true, message: 'Login successful' };
+        return { success: true, message: 'Login successful',company };
     } catch (error) {
         console.error('Error verifying login:', error);
         throw new Error('Error verifying login');

@@ -3,11 +3,12 @@ import { Request, Response } from 'express';
 import { registerUser,createOtp,verifyotp,verifylogin,sendEmail,getUser} from '../UseCase/userUseCase'
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
-
+import userJWT from '../FrameWork/utilits/userJwt'
 export async function registerUserController(req: Request, res: Response): Promise<void> {
     try {
      
         const { name, number, email, password } = req.body;
+        console.log(name, number, email, password)
 
         const result = await registerUser({ name, number, email, password });
 
@@ -67,14 +68,21 @@ export async function loginUserControll(req: Request, res: Response): Promise<vo
     
     try {
         const result = await verifylogin(email, password);
-        res.json(result);
+        if(result.success){
+            const role:string =  'user';
+           
+            userJWT({res,userId: result.user?._id as string,role});
+            res.json(result);
+        }
+        else{
+            res.json(result)
+        }
+    
     } catch (error) {
         console.error('Error in loginUserControll:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
-
-
 
 export async function resendOtpUsercontroll(req: Request, res: Response): Promise<void> {
     const { userId } = req.body;
@@ -103,3 +111,24 @@ export async function resendOtpUsercontroll(req: Request, res: Response): Promis
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
+
+
+export async function logout(req: Request, res: Response): Promise<void> {
+   
+    try {
+    
+      const { role } = req.body;
+  
+      res.clearCookie(role, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production', 
+      });
+      console.log('Logged out successfully')
+      res.json({ success: true, message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  }
+

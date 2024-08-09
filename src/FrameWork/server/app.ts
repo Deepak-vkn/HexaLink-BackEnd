@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './mongo'; 
 import userRouter from '../Routes/userRoutes'; 
 import companyRouter from '../Routes/companyRoutes'; 
+import adminRouter from '../Routes/adminRoutes'; 
 import cors from 'cors'; 
 
 dotenv.config();
@@ -27,8 +28,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/', userRouter);
-
 app.use('/company', companyRouter);
+app.use('/admin', adminRouter);
+
 
 
 export default app;

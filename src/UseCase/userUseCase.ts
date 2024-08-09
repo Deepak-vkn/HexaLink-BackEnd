@@ -87,38 +87,38 @@ export async function verifyotp(otp: number, userId: mongoose.Schema.Types.Objec
 }
 
 
-export async function verifylogin(email: string, password: string): Promise<{ success: boolean; message: string,user?:UserDocument }> {
+export async function verifylogin(email: string, password: string): Promise<{ success: boolean; message: string; user?: UserDocument }> {
     try {
         // Find the user by email
         const user = await findUserByEmail(email);
         
         if (!user) {
-            
             // No user found with the given email
             return { success: false, message: 'User not found' };
         }
 
         if (!user.is_verified) {
-            
             const otp = await createOtp(user._id as mongoose.Schema.Types.ObjectId);
             if (otp) {
-                 sendEmail(user.email, otp.otp);
-                return { success: false, message: 'User not verified. OTP has been sent.',user:user};
+                sendEmail(user.email, otp.otp);
+                return { success: false, message: 'User not verified. OTP has been sent.', user: user };
             } else {
                 return { success: false, message: 'Failed to generate OTP' };
             }
         }
+
         if (user.password !== password) {
             return { success: false, message: 'Incorrect password' };
         }
 
-        
-        return { success: true, message: 'Login successful' };
+        // Login successful
+        return { success: true, message: 'Login successful', user: user };
     } catch (error) {
         console.error('Error verifying login:', error);
         throw new Error('Error verifying login');
     }
 }
+
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
