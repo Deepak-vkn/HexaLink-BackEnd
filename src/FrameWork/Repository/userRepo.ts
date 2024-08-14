@@ -1,65 +1,58 @@
-// backend/src/framework/repository/userRepository.ts
 import User, { UserDocument } from '../Databse/userSchema';
 import Otp, { OtpDocument } from '../Databse/otpSchema';
-
-
+import Token, { TokenDocument } from '../Databse/tokenSchema'; // Ensure this import is correct
+import { IUserRepository } from '../Interface/userInterface'; // Ensure correct path
 import mongoose from 'mongoose';
 
-
-
-export async function createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
-    return User.create(userData);
-}
-
-export async function findUserByEmail(email: string): Promise<UserDocument | null> {
-    return User.findOne({ email }).exec();
-}
-
-export async function findUserById(id: string): Promise<UserDocument | null> {
-    try {
-        return await User.findById(id).exec(); // Use findById to find by user ID
-    } catch (error) {
-        console.error('Error finding user by ID:', error);
-        throw new Error('Error finding user by ID');
+export class UserRepository implements IUserRepository {
+    async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
+        return User.create(userData);
     }
-}
 
-export async function saveOtp(otp: number,  userId: mongoose.Schema.Types.ObjectId, expiresAt: Date): Promise<OtpDocument> {
-    console.log('raecehed save otp') 
-    const newOtp = new Otp({
-        otp,
-        userId,
-        expiresAt
-    });
-    await newOtp.save();
-    return newOtp;
-}
+    async findUserByEmail(email: string): Promise<UserDocument | null> {
+        return User.findOne({ email }).exec();
+    }
 
-
-export async function findOtpById(userId: mongoose.Schema.Types.ObjectId): Promise<Number | null> {
-    try {
-        // Find OTP by user ID
-        const otpRecord = await Otp.findOne({ userId: userId }).exec();
-        if (otpRecord) {
-            return otpRecord.otp; // Assuming the OTP is stored in a field named 'otp'
-        } else {
-            return null; // No OTP found for this user ID
+    async findUserById(id:  mongoose.Types.ObjectId): Promise<UserDocument | null> {
+        try {
+            return await User.findById(id).exec();
+        } catch (error) {
+            console.error('Error finding user by ID:', error);
+            throw new Error('Error finding user by ID');
         }
-    } catch (error) {
-        console.error('Error finding OTP:', error);
-        throw new Error('Error finding OTP');
     }
-}
 
-export async function deleteOtpById(userId: mongoose.Schema.Types.ObjectId):Promise<void>{
-    await Otp.deleteOne({userId}).exec()
-}
+    async saveOtp(otp: number, userId:  mongoose.Types.ObjectId, expiresAt: Date): Promise<OtpDocument> {
+        console.log('Reached save otp');
+        const newOtp = new Otp({ otp, userId, expiresAt });
+        await newOtp.save();
+        return newOtp;
+    }
 
+    async findOtpById(userId: mongoose.Types.ObjectId): Promise<OtpDocument | null> {
+        try {
+            return await Otp.findOne({ userId }).exec();
+        } catch (error) {
+            console.error('Error finding OTP:', error);
+            throw new Error('Error finding OTP');
+        }
+    }
 
+    async deleteOtpById(userId:  mongoose.Types.ObjectId): Promise<void> {
+        await Otp.deleteOne({ userId }).exec();
+    }
 
+    async getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+        return User.findById(userId).exec();
+    }
 
+    async getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null> {
+        try {
+            return await Token.findOne({ userId }).exec();
+        } catch (error) {
+            console.error('Error fetching token by userId:', error);
+            return null;
+        }
+    }
     
-export async function getUserById(userId: mongoose.Schema.Types.ObjectId):Promise<UserDocument|null> {
-    
-    return User.findById(userId).exec()
 }

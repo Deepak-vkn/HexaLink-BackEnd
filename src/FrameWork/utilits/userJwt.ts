@@ -5,22 +5,24 @@ import jwt from 'jsonwebtoken';
 interface GenerateTokenParams {
   res: Response;
   userId: string;
-  role:string;
+  role: string;
 }
 
-const generateToken = ({ res, userId,role }: GenerateTokenParams): void => {
+const generateToken = ({ res, userId, role }: GenerateTokenParams): void => {
   // Check if JWT_SECRET is defined
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined in environment variables');
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET is not defined in environment variables');
+    throw new Error('JWT_SECRET is not defined');
   }
 
   try {
     // Generate the token
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId, role }, jwtSecret, {
       expiresIn: '30d',
     });
 
-    // Log the generated token for debugging
+    // Log the generated token for debugging (optional)
     console.log('Generated JWT token:', token);
 
     // Set the token as an HTTP-only cookie
@@ -28,6 +30,7 @@ const generateToken = ({ res, userId,role }: GenerateTokenParams): void => {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     });
 
     // Confirm the cookie setting

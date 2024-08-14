@@ -1,0 +1,16 @@
+// backend/src/domain/interfaces/userRepository.ts
+import { UserDocument } from '../Databse/userSchema';
+import { OtpDocument } from '../Databse/otpSchema';
+import { TokenDocument } from '../Databse/tokenSchema';
+import mongoose from 'mongoose';
+
+export interface IUserRepository {
+    createUser(userData: Partial<UserDocument>): Promise<UserDocument>;
+    findUserByEmail(email: string): Promise<UserDocument | null>;
+    findUserById(id:  mongoose.Types.ObjectId): Promise<UserDocument | null>;
+    saveOtp(otp: number, userId:  mongoose.Types.ObjectId, expiresAt: Date): Promise<OtpDocument>;
+    findOtpById(userId: mongoose.Types.ObjectId): Promise<OtpDocument | null>;
+    deleteOtpById(userId:  mongoose.Types.ObjectId): Promise<void>;
+    getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null>;
+    getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null>;
+}

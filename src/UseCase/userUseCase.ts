@@ -1,165 +1,222 @@
-// backend/src/usecase/userUseCase.ts
-import { createUser, findUserByEmail,saveOtp,findOtpById,deleteOtpById ,getUserById } from '../FrameWork/Repository/\/userRepo';
-import User,{ UserDocument } from '../FrameWork/Databse/userSchema';
-import Otp, { OtpDocument } from '../FrameWork/Databse/otpSchema';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
+import jwt from 'jsonwebtoken';
+import { IUserRepository } from '../FrameWork/Interface/userInterface';
+import User, { UserDocument } from '../FrameWork/Databse/userSchema';
+import Otp, { OtpDocument } from '../FrameWork/Databse/otpSchema';
+import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
 
+export class UserUseCase {
+    private userRepository: IUserRepository;
+    private transporter: nodemailer.Transporter;
 
+    constructor(userRepository: IUserRepository) {
+        this.userRepository = userRepository;
 
-
-
-export async function registerUser(userData: Partial<UserDocument>): Promise<{ success: boolean, message: string, user?: UserDocument }> {
-    const { email } = userData;
-
-   
-    if (!email) {
-        return { success: false, message: 'Email is required' };
+        this.transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
     }
 
-    const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-       console.log(existingUser&&existingUser.is_verified)
-               
-            return { success: false, message: 'User with this email already exists ' };
-        
-    }
+    public async registerUser(userData: Partial<UserDocument>): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+        const { email } = userData;
 
-
-    const user = await createUser(userData)
-
-    if (user) {
-        return { success: true, message: 'User registered successfully', user };
-    } else {
-        return { success: false, message: 'User registration failed' };
-    }
-}
-
-
-
-export async function createOtp(userId: mongoose.Schema.Types.ObjectId): Promise<OtpDocument> {
-
-   const storedOtp = await findOtpById(userId)
-   if(storedOtp){
-    await deleteOtpById(userId);
-   }
-    const otp = generateOtp();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); 
-    return saveOtp(otp, userId, expiresAt)
-}
-
-
-function generateOtp(): number {
-    return Math.floor(1000 + Math.random() * 9000);
-}
-
-
-
-export async function verifyotp(otp: number, userId: mongoose.Schema.Types.ObjectId): Promise<{ success: boolean, message: string }> {
-    try {
-       
-        const storedOtp = await findOtpById(userId);
-        
-        if (storedOtp === null) {
-            return { success: false, message: 'OTP not found' };
+        if (!email) {
+            return { success: false, message: 'Email is required' };
         }
 
-    
-        if (storedOtp === otp) {
- 
-            const user = await User.findById(userId);
+        const existingUser = await this.userRepository.findUserByEmail(email);
+        if (existingUser?.is_verified) {
+            return { success: false, message: 'User with this email already exists' };
+        }
 
-            if (user) {
-                user.is_verified = true; 
-                await user.save();
-                return { success: true, message: 'OTP verified successfully' };
-            } else {
-                console.log('reched sdhgasgdhgashg')
-                return { success: false, message: 'User not found' };
-            }
+        const user = await this.userRepository.createUser(userData);
+
+        if (user) {
+            return { success: true, message: 'User registered successfully', user };
         } else {
-            return { success: false, message: 'Invalid OTP' };
+            return { success: false, message: 'User registration failed' };
         }
-    } catch (error) {
-        console.error('Error verifying OTP:', error);
-        throw new Error('Error verifying OTP');
     }
-}
 
-
-export async function verifylogin(email: string, password: string): Promise<{ success: boolean; message: string; user?: UserDocument }> {
-    try {
-        // Find the user by email
-        const user = await findUserByEmail(email);
-        
-        if (!user) {
-            // No user found with the given email
-            return { success: false, message: 'User not found' };
+    public async createOtp(userId: mongoose.Types.ObjectId): Promise<OtpDocument> {
+        const storedOtp = await this.userRepository.findOtpById(userId);
+        if (storedOtp) {
+            await this.userRepository.deleteOtpById(userId);
         }
 
-        if (!user.is_verified) {
-            const otp = await createOtp(user._id as mongoose.Schema.Types.ObjectId);
-            if (otp) {
-                sendEmail(user.email, otp.otp);
-                return { success: false, message: 'User not verified. OTP has been sent.', user: user };
-            } else {
-                return { success: false, message: 'Failed to generate OTP' };
+        const otp = this.generateOtp();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+        return this.userRepository.saveOtp(otp, userId, expiresAt);
+    }
+
+    private generateOtp(): number {
+        return Math.floor(1000 + Math.random() * 9000);
+    }
+
+
+    public async verifyOtp(otp: number, userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string }> {
+        try {
+            const otpRecord = await this.userRepository.findOtpById(userId);
+    
+            if (!otpRecord) {
+                return { success: false, message: 'OTP not found' };
             }
+    
+            if (otpRecord.otp === otp) {
+                const user = await this.userRepository.findUserById(userId);
+    
+                if (user) {
+                    user.is_verified = true;
+                    await user.save();
+                    return { success: true, message: 'OTP verified successfully' };
+                } else {
+                    return { success: false, message: 'User not found' };
+                }
+            } else {
+                return { success: false, message: 'Invalid OTP' };
+            }
+        } catch (error) {
+            console.error('Error verifying OTP:', error);
+            return { success: false, message: 'Error verifying OTP' };
         }
-
-        if (user.password !== password) {
-            return { success: false, message: 'Incorrect password' };
-        }
-
-        // Login successful
-        return { success: true, message: 'Login successful', user: user };
-    } catch (error) {
-        console.error('Error verifying login:', error);
-        throw new Error('Error verifying login');
     }
-}
 
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
-
-// Function to send email
-export const sendEmail = async (email: string, otp: number): Promise<boolean> => {
-    try {
-        console.log('process.env:',  process.env.EMAIL_USER, process.env.EMAIL_PASS)
+    public async sendEmail(to: string,content: string ,subject:string='No subject'): Promise<void> {
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: 'deepakvkn1252@gmail.com',
-            subject: 'OTP for verification',
-
-            
-            text: `Your OTP is ${otp}`,
+            to,
+            subject,
+            text: content,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.response);
-        return true;
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return false;
+        await this.transporter.sendMail(mailOptions);
     }
-};
 
 
-export const getUser = async (userId: mongoose.Schema.Types.ObjectId): Promise<UserDocument> => {
+   public async verifyLogin(email: string, password: string): Promise<{ success: boolean, message: string, user?: UserDocument }> {
     try {
-        const user = await getUserById(userId);
+        const user = await this.userRepository.findUserByEmail(email);
+
         if (!user) {
-            throw new Error('User not found');
+            return { success: false, message: 'User not found' };
         }
-        return user;
+        if(!user.is_verified){
+            const otp = await this.createOtp(user._id as mongoose.Types.ObjectId);
+            if (otp) {
+                const message=`Your otp for the verifiction is ${otp.otp}`
+              await this.sendEmail('deepakvkn1252@gmail.com', message,'OTP Verifictaion');
+              return { success: false, message: 'User not verified. OTP has been sent.', user };
+            } else {
+              return { success: false, message: 'Failed to generate OTP' };
+            }
+
+        }
+
+        // Direct comparison of plain-text passwords
+        const isPasswordValid = user.password === password;
+
+        if (!isPasswordValid) {
+            return { success: false, message: 'Invalid password' };
+        }
+
+        return { success: true, message: 'Login successful', user };
     } catch (error) {
-        console.error('Error fetching user:', error);
-        throw new Error('Error fetching user');
+        console.error('Error in verifyLogin:', error);
+        return { success: false, message: 'Internal server error' };
     }
-};
+}
+
+    public async generateResetToken(userId: string): Promise<string> {
+        const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '30s' });
+        const expireAt = new Date();
+      expireAt.setHours(expireAt.getHours() + 30);
+
+        await Token.create({ userId, token: resetToken,expireAt });
+        return resetToken;
+    }
+
+    public async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
+        try {
+            // Attempt to decode and verify the JWT token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+    
+            // Find the token record in the database
+            const tokenRecord = await Token.findOne({ token });
+    
+            if (tokenRecord) {
+                // Check if the token has expired based on the token record's expireAt field
+                const currentTime = new Date();
+                if (tokenRecord.expireAt < currentTime) {
+                    // If token has expired, return an appropriate response
+                    return { success: false, message: 'Link has expired' };
+                }
+    
+                // Token is valid and not expired
+                return { success: true, tokenRecord };
+            } else {
+                // Token record not found
+                return { success: false, message: 'Invalid or expired token' };
+            }
+        } catch (error) {
+            // Handle specific JWT error
+            if (error instanceof jwt.TokenExpiredError) {
+                return { success: false, message: 'Token has expired' };
+            } else {
+                // Handle other errors
+                console.error('Error verifying token:', error);
+                return { success: false, message: 'Invalid token' };
+            }
+        }
+    }
+
+    public async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string): Promise<{ success: boolean, message: string }> {
+        try {
+            const user = await this.userRepository.findUserById(userId);
+
+            if (user) {
+                user.password = newPassword; 
+                await user.save();
+                return { success: true, message: 'Password updated successfully' };
+            } else {
+                return { success: false, message: 'User not found' };
+            }
+        } catch (error) {
+            console.error('Error updating password:', error);
+            return { success: false, message: 'Error updating password' };
+        }
+    }
+
+    public async getUser(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+        return await this.userRepository.findUserById(userId);
+    }
+    public async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
+        try {
+            // Fetch the OTP document from the database
+            const otp = await Otp.findOne({ userId }).exec();
+
+            if (!otp) {
+                return { success: false, message: 'OTP not found' };
+            }
+
+            // Calculate the time left for resend
+            const currentTime = new Date();
+            const expiresAt = otp.expiresAt; // Timestamp when OTP expires
+            const timeLeft = Math.max(0, Math.floor((expiresAt.getTime() - currentTime.getTime()) / 1000)); // Convert milliseconds to seconds
+
+            // Send the response with the remaining time
+            return { success: true, timeLeft };
+        } catch (error) {
+            console.error('Error fetching OTP:', error);
+            return { success: false, message: 'An error occurred while fetching OTP' };
+        }
+    }
+
+   
+}
+
+

@@ -1,13 +1,24 @@
-// backend/src/framework/router/userRouter.ts
 import express from 'express';
-import { registerUserController,verifyotpUserControll,loginUserControll ,resendOtpUsercontroll,logout} from '../../Adapters/userControll';
+import { 
+    registerUserController,
+    verifyOtpUserController,  // Corrected spelling
+    loginUserController,      // Corrected spelling
+    resendOtpUserController,  // Corrected spelling
+    logout,
+    forgetPasswordUserController,
+    resetPasswordUserController,
+    fetchtimerUserController
+     // Corrected spelling
+} from '../../Adapters/userControll';  // Ensure the path and filename are correct
 
 const router = express.Router();
 
-
 router.post('/register', registerUserController);
-router.post('/verifyotp',verifyotpUserControll)
-router.post('/login',loginUserControll)
-router.post('/resendOtp',resendOtpUsercontroll)
-router.post('/logout', logout)
+router.post('/verifyotp', verifyOtpUserController);
+router.post('/login', loginUserController);
+router.post('/resendOtp', resendOtpUserController);
+router.post('/logout', logout);
+ router.post('/forgetPassword', forgetPasswordUserController);
+ router.post('/resetPassword', resetPasswordUserController);
+ router.post('/fetchtimer',fetchtimerUserController)
 export default router;
