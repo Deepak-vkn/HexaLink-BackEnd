@@ -23,3 +23,34 @@ export async function loginAdminControll(req: Request, res: Response): Promise<v
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
+
+export async function fetchUserAdminControll(req:Request,res:Response):Promise<void>{
+    console.log('raeched backend')
+    try {
+        const users=await adminUseCase.fetchUsersAdminCase()
+        res.status(200).json({
+            success: true,
+            data: users,
+        });
+        
+    } catch (error) {
+        console.error('Error fetching users',error)
+        res.status(500).json({success:false,message:'Failed to load users'})
+    }
+}
+
+export async function fetchCompanyAdminControll(req:Request,res:Response):Promise<void>{
+    console.log('raeched backend')
+    try {
+        const users=await adminUseCase.fetchCompanyAdminCase()
+        res.status(200).json({
+            success: true,
+            data: users,
+        });
+        
+    } catch (error) {
+        console.error('Error fetching company',error)
+        res.status(500).json({success:false,message:'Failed to load users'})
+    }
+}
+

@@ -1,7 +1,8 @@
 // backend/src/usecase/AdminUseCase.ts
 import { IAdminRepository } from '../FrameWork/Interface/adminInterface'; // Import the interface
 import { AdminDocument } from '../FrameWork/Databse/adminSchema'; // Corrected path to 'Databse'
-
+import { UserDocument } from '../FrameWork/Databse/userSchema';
+import { CompanyDocument } from '../FrameWork/Databse/companySchema';
 class AdminUseCase {
     private adminRepository: IAdminRepository;
 
@@ -27,6 +28,17 @@ class AdminUseCase {
             throw new Error('Error verifying login');
         }
     }
+
+    public async fetchUsersAdminCase(): Promise<UserDocument[]> {
+        const users = await this.adminRepository.fetchUsers(); 
+        return users; 
+    }
+    public async fetchCompanyAdminCase(): Promise<CompanyDocument[]> {
+        const users = await this.adminRepository.fetchCompany(); 
+        return users; 
+    }
+    
+    
 }
 
 export default AdminUseCase;

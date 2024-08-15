@@ -94,6 +94,10 @@ export class CompanyUseCase {
           return { success: false, message: 'Failed to generate OTP' };
         }
       }
+      if(company.is_block){
+        return { success: false, message: 'Acess Denied' };
+    }
+
 
       if (company.password !== password) {
         return { success: false, message: 'Incorrect password' };
@@ -209,5 +213,27 @@ public async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string
 
 public async getUser(userId: mongoose.Types.ObjectId): Promise<CompanyDocument | null> {
     return await this.companyRepo.findCompanyById(userId);
+}
+
+public async blockCompany(userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}>{
+       
+  const user=await this.companyRepo.findCompanyById(userId)
+
+  if(user){
+      if(user.is_block){
+          user.is_block=false
+          user.save()
+          return { success: true, message: 'user blocked successfully',block:false};
+      }
+      else{
+          user.is_block=true
+          user.save()
+          return { success: true, message: 'user blocked successfully',block:true};
+      }
+      
+  }
+  else{
+      return { success: false, message: 'failed to  block user ' };
+  }
 }
 }

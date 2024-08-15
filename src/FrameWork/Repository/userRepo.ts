@@ -43,6 +43,7 @@ export class UserRepository implements IUserRepository {
     }
 
     async getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+ 
         return User.findById(userId).exec();
     }
 

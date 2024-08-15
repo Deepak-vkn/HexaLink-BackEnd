@@ -7,7 +7,8 @@ import {
     logout,
     forgetPasswordUserController,
     resetPasswordUserController,
-    fetchtimerUserController
+    fetchtimerUserController,
+    blockUserUserController
      // Corrected spelling
 } from '../../Adapters/userControll';  // Ensure the path and filename are correct
 
@@ -21,4 +22,5 @@ router.post('/logout', logout);
  router.post('/forgetPassword', forgetPasswordUserController);
  router.post('/resetPassword', resetPasswordUserController);
  router.post('/fetchtimer',fetchtimerUserController)
+ router.post('/block',blockUserUserController)
 export default router;

@@ -189,3 +189,19 @@ export async function fetchtimerUserController(req: Request, res: Response): Pro
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
+
+export async function blockUserUserController(req: Request, res: Response): Promise<void> {
+    const{userId}=req.body
+    console.log('user is',userId)
+    try {
+        console.log('reched bolck user')
+       
+        const result = await userUseCase.blockUser(userId); 
+        
+        res.status(result.success ? 200 : 400).json(result);
+        
+    } catch (error) {
+        console.error('Error in blocking user:', error);
+        res.status(500).json({ success: false, message: 'Error in blocking user' });
+    }
+}

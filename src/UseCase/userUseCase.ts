@@ -5,6 +5,7 @@ import { IUserRepository } from '../FrameWork/Interface/userInterface';
 import User, { UserDocument } from '../FrameWork/Databse/userSchema';
 import Otp, { OtpDocument } from '../FrameWork/Databse/otpSchema';
 import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
+import { forgetPasswordCompanyController } from '../Adapters/companyControll';
 
 export class UserUseCase {
     private userRepository: IUserRepository;
@@ -116,6 +117,9 @@ export class UserUseCase {
             }
 
         }
+        if(user.is_block){
+            return { success: false, message: 'Acess Denied' };
+        }
 
         // Direct comparison of plain-text passwords
         const isPasswordValid = user.password === password;
@@ -213,6 +217,29 @@ export class UserUseCase {
         } catch (error) {
             console.error('Error fetching OTP:', error);
             return { success: false, message: 'An error occurred while fetching OTP' };
+        }
+    }
+    public async blockUser(userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}>{
+       
+        const user=await this.userRepository.getUserById(userId)
+    
+        if(user){
+            if(user.is_block){
+                user.is_block=false
+                user.save()
+                return { success: true, message: 'user blocked successfully',block:false};
+            }
+            else{
+                user.is_block=true
+                user.save()
+                return { success: true, message: 'user blocked successfully',block:true};
+            }
+         
+
+            
+        }
+        else{
+            return { success: false, message: 'failed to  block user ' };
         }
     }
 

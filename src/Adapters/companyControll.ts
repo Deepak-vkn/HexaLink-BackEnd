@@ -151,3 +151,19 @@ export async function resetPasswordCompanyController(req: Request, res: Response
         res.status(500).json({ success: false, message: 'Failed to reset password' });
     }
 }
+
+export async function blockUserCompanyController(req: Request, res: Response): Promise<void> {
+    const{userId}=req.body
+    console.log('user is',userId)
+    try {
+        console.log('reched bolck user')
+       
+        const result = await companyUseCase.blockCompany(userId); 
+        
+        res.status(result.success ? 200 : 400).json(result);
+        
+    } catch (error) {
+        console.error('Error in blocking user:', error);
+        res.status(500).json({ success: false, message: 'Error in blocking user' });
+    }
+}
