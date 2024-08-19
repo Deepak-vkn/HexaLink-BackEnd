@@ -1,10 +1,15 @@
-import mongoose, { Schema, Document, ObjectId } from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 
-export interface Posts  {
-  userId: ObjectId ;
-  comment: string | null;
-  likes: number | null;
-  image: string | null;
-  caption: string | null;
-  postAt: Date | null;
+export interface Comment {
+    userId: ObjectId;
+    comment: string;
+}
+
+export interface Posts {
+    userId: ObjectId;
+    comments: Comment[];
+    likes: string[]; 
+    image: string | null;
+    caption: string | null;
+    postAt: Date | null;
 }

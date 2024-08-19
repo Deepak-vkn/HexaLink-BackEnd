@@ -6,7 +6,8 @@ import User, { UserDocument } from '../FrameWork/Databse/userSchema';
 import Otp, { OtpDocument } from '../FrameWork/Databse/otpSchema';
 import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
 import { forgetPasswordCompanyController } from '../Adapters/companyControll';
-
+import { UserRepository } from '../FrameWork/Repository/userRepo';
+import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -242,8 +243,53 @@ export class UserUseCase {
             return { success: false, message: 'failed to  block user ' };
         }
     }
+    public async updateUser(updateData: any): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+        try {
+            const existingUser = await this.userRepository.getUserById(updateData.userId);
+    
+            if (!existingUser) {
+                return { success: false, message: 'User not found' };
+            }
+    
+            for (const key in updateData.user) {
+                if (updateData.user.hasOwnProperty(key)) {
+                    (existingUser as any)[key] = updateData.user[key];
+                }
+            }
+    
+            await existingUser.save();
+    
+            return { success: true, message: 'User updated successfully', user: existingUser };
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return { success: false, message: 'Error updating user' };
+        }
+    }
 
-   
+    public async createPost(file: string, caption: string, userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}> {
+      console.log('raeched usecse',file)
+        try {
+            const user = await this.userRepository.findUserById(userId);
+            if (!user) {
+                return { success: false, message: 'User not found' };
+            }
+            
+            let imageUrl: string  = '';
+            if (file) {
+                imageUrl = await uploadCloudinary(file);
+            }
+    
+            const result = await this.userRepository.createPostRepo(imageUrl, caption, userId);
+            if (!result) {
+                return { success: false, message: 'Failed to post' };
+            }
+
+            return { success: true, message: 'Post created successfully' };
+        } catch (error) {
+            console.error('Error creating post:', error);
+            throw new Error('Failed to create post');
+        }
+    }
 }
 
 

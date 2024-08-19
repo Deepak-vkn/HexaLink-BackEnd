@@ -3,6 +3,7 @@ import Otp, { OtpDocument } from '../Databse/otpSchema';
 import Token, { TokenDocument } from '../Databse/tokenSchema'; // Ensure this import is correct
 import { IUserRepository } from '../Interface/userInterface'; // Ensure correct path
 import mongoose from 'mongoose';
+import Post, { PostDocument } from '../Databse/postSchema';
 
 export class UserRepository implements IUserRepository {
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
@@ -52,6 +53,18 @@ export class UserRepository implements IUserRepository {
             return await Token.findOne({ userId }).exec();
         } catch (error) {
             console.error('Error fetching token by userId:', error);
+            return null;
+        }
+    }
+
+    async createPostRepo(image: string, caption: string, userId: mongoose.Types.ObjectId): Promise<PostDocument| null> {
+        try {
+            console.log('are hed repo')
+            const post = new Post({ image, caption, userId });
+            const savedPost = await post.save();
+            return savedPost;
+        } catch (error) {
+            console.error('Error creating post:', error);
             return null;
         }
     }

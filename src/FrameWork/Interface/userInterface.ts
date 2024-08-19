@@ -2,6 +2,7 @@
 import { UserDocument } from '../Databse/userSchema';
 import { OtpDocument } from '../Databse/otpSchema';
 import { TokenDocument } from '../Databse/tokenSchema';
+import { PostDocument } from '../Databse/postSchema';
 import mongoose from 'mongoose';
 
 export interface IUserRepository {
@@ -13,4 +14,5 @@ export interface IUserRepository {
     deleteOtpById(userId:  mongoose.Types.ObjectId): Promise<void>;
     getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null>;
     getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null>;
+    createPostRepo(file:string,caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
 }

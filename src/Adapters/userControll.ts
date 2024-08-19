@@ -205,3 +205,42 @@ export async function blockUserUserController(req: Request, res: Response): Prom
         res.status(500).json({ success: false, message: 'Error in blocking user' });
     }
 }
+
+
+
+export async function updateUserController (req:Request,res:Response){
+    const userUpdates = req.body;
+
+    try {
+     
+
+        const rseult=await userUseCase.updateUser(userUpdates)
+        
+    } catch (error) {
+        console.error('Error in updating user:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
+
+export async function userPostControll(req: Request, res: Response) {
+    try {
+        const { file, caption, userId } = req.body;
+        console.log('raecjed adapter')
+
+        // Validate request body
+        if (!file || !caption || !userId) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        // Convert userId to mongoose.Types.ObjectId if necessary
+        const userIdObj = new mongoose.Types.ObjectId(userId);
+
+        // Create post
+        const result = await userUseCase.createPost(file, caption, userIdObj);
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error('Error in userPostControll:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
