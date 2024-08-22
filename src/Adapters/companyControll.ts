@@ -3,7 +3,7 @@ import { CompanyUseCase } from '../UseCase/companyUseCase';
 import { CompanyRepository } from '../FrameWork/Repository/companyRepo';
 import userJWT from '../FrameWork/utilits/userJwt';
 import mongoose from 'mongoose';
-
+import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
 const companyRepo = new CompanyRepository();
 const companyUseCase = new CompanyUseCase(companyRepo);
 
@@ -167,3 +167,51 @@ export async function blockUserCompanyController(req: Request, res: Response): P
         res.status(500).json({ success: false, message: 'Error in blocking user' });
     }
 }
+
+
+export async function createJobController(req: Request, res: Response): Promise<void> {
+    try {
+        // Extract job data from the request body
+        const jobData: Partial<JobDocument> = req.body;
+
+        console.log('Received job data:', jobData);
+
+        // Call the service to create the job
+        const result = await companyUseCase.createJobService(jobData);
+
+        // Check the result and send appropriate response
+        if (result.success) {
+            res.status(201).json({
+                success: true,
+                message: result.message,
+                job: result.job,
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: result.message,
+            });
+        }
+    } catch (error) {
+        console.error('Error in createJobController:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An internal server error occurred',
+        });
+    }
+}
+
+export async function fetchJobsController(req: Request, res: Response): Promise<void> {
+    const { companyId } = req.body;
+    console.log('Fetching jobs for company:', req.body);
+
+    try {
+        const result = await companyUseCase.fetchJobs(companyId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}
+
+

@@ -3,7 +3,7 @@
 import express from 'express';
 import {registerCompanyController,verifyOtpCompanyController,
     loginCompanyController,resendOtpCompanyController,
-    resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController
+    resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController
 } from '../../Adapters/companyControll'
 
 const router = express.Router();
@@ -16,5 +16,7 @@ router.post('/resendOtp',resendOtpCompanyController)
 router.post('/forgetPassword', forgetPasswordCompanyController);
 router.post('/resetPassword', resetPasswordCompanyController);
 router.post('/block',blockUserCompanyController)
+router.post('/createJob',createJobController)
+router.post('/fetchJobs',fetchJobsController)
 
 export default router;

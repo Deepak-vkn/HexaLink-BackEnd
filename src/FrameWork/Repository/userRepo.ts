@@ -68,5 +68,13 @@ export class UserRepository implements IUserRepository {
             return null;
         }
     }
+    async getUserPosts(userId: mongoose.Types.ObjectId): Promise<PostDocument[] | null> {
+        try {
+            return await Post.find({ userId }).exec();
+        } catch (error) {
+            console.error('Error fetching token by userId:', error);
+            return null;
+        }
+    }
     
 }

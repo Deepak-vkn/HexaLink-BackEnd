@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Company, { CompanyDocument } from '../Databse/companySchema';
 import Otp, { OtpDocument } from '../Databse/otpSchema';
 import { ICompanyRepository } from '../Interface/companyInterface'; // Assuming you have this interface in the same directory
+import Job,{ JobDocument } from '../Databse/jobSchema';
 
 export class CompanyRepository implements ICompanyRepository {
     
@@ -55,4 +56,20 @@ export class CompanyRepository implements ICompanyRepository {
     async getCompanyById(userId:  mongoose.Types.ObjectId): Promise<CompanyDocument | null> {
         return Company.findById(userId).exec();
     }
+    async  createJobRepository(jobData: Partial<JobDocument>): Promise<JobDocument | null> {
+        try {
+
+            const newJob = new Job(jobData);
+
+            const savedJob = await newJob.save();
+            return savedJob;
+        } catch (error) {
+            console.error('Error in createJobRepository:', error);
+            return null;
+        }
+    }
+    fetchJobsRepository(companyId: mongoose.Types.ObjectId): Promise<JobDocument[] | null> {
+        return Job.find({ companyId }).exec(); 
+    }
+    
 }

@@ -244,3 +244,34 @@ export async function userPostControll(req: Request, res: Response) {
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
+
+export async function getUserPostsControll(req:Request,res:Response): Promise<any>{
+  
+    try {
+        const userId = req.params.userId;
+        
+        if (!userId) {
+            res.status(400).json({ message: 'User ID is required' });
+            return;
+        }
+        const objectId = new mongoose.Types.ObjectId(userId);
+        const result=  await userUseCase.getPosts(objectId)
+        if (result.success) {
+            console.log(result.posts)
+            res.json({
+                success:true,
+                message: result.message,
+                posts: result.posts,
+            });
+        } else {
+            res.json({
+                success:false,
+                message: result.message,
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching user posts:', error);
+        res.status(500).json({ message: 'Failed to fetch user posts.' });
+    }
+    
+}

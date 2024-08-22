@@ -3,7 +3,7 @@ import { CompanyDocument } from '../FrameWork/Databse/companySchema';
 import { OtpDocument } from '../FrameWork/Databse/otpSchema';
 import { ICompanyRepository } from '../FrameWork/Interface/companyInterface';
 import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
-
+import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 
@@ -236,4 +236,50 @@ public async blockCompany(userId: mongoose.Types.ObjectId):Promise<{ success: bo
       return { success: false, message: 'failed to  block user ' };
   }
 }
+public async createJobService(jobData: Partial<JobDocument>): Promise<{ success: boolean; message: string; job?: JobDocument }> {
+  console.log('Service layer: processing job creation');
+  
+  try {
+      // Attempt to create the job using the repository
+      const createdJob = await this.companyRepo.createJobRepository(jobData);
+      
+      if (!createdJob) {
+          return {
+              success: false,
+              message: 'Failed to create job',
+          };
+      }
+
+      // If the job was successfully created, return success along with the created job
+      return {
+          success: true,
+          message: 'Job created successfully',
+          job: createdJob,
+      };
+  } catch (error) {
+      console.error('Error in createJobService:', error);
+
+      // Return failure status if an error occurs
+      return {
+          success: false,
+          message: 'An error occurred while creating the job',
+      };
+  }
 }
+public async fetchJobs(companyId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
+  try {
+      const jobs = await this.companyRepo.fetchJobsRepository(companyId);
+
+      if (jobs) {
+          return { success: true, message: 'Jobs fetched successfully', jobs };
+      } else {
+          return { success: false, message: 'No jobs found', jobs: [] };
+      }
+  } catch (error) {
+      console.error('Error fetching jobs:', error);
+      return { success: false, message: 'Error fetching jobs', jobs: [] };
+  }
+}
+
+}
+

@@ -11,7 +11,8 @@ import {
     fetchtimerUserController,
     blockUserUserController,
     updateUserController,
-    userPostControll
+    userPostControll,
+    getUserPostsControll
      // Corrected spelling
 } from '../../Adapters/userControll';  // Ensure the path and filename are correct
 
@@ -29,4 +30,5 @@ router.post('/fetchtimer',fetchtimerUserController)
 router.post('/block',blockUserUserController)
 router.post('/update',updateUserController)
 router.post('/userpost',upload.single('file'),userPostControll)
+router.get('/userposts/:userId', getUserPostsControll);
 export default router;

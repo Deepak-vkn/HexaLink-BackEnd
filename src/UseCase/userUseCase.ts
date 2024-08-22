@@ -8,6 +8,7 @@ import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
 import { forgetPasswordCompanyController } from '../Adapters/companyControll';
 import { UserRepository } from '../FrameWork/Repository/userRepo';
 import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
+import { PostDocument } from '../FrameWork/Databse/postSchema';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -290,6 +291,31 @@ export class UserUseCase {
             throw new Error('Failed to create post');
         }
     }
+    public async getPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string, posts?: PostDocument[] }> {
+        try {
+            console.log('raeched backend')
+            const posts = await this.userRepository.getUserPosts(userId);
+    
+            if (posts && posts.length > 0) {
+                console.log('post are',posts)
+                return {
+                    success: true,
+                    message: 'Posts retrieved successfully',
+                    posts: posts
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'No posts found for this user'
+                };
+            }
+        } catch (error) {
+            console.error('Error retrieving posts:', error);
+            return {
+                success: false,
+                message: 'Failed to retrieve posts'
+            };
+        }
+    }
+    
 }
-
-

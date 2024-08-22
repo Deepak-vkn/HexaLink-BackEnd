@@ -15,4 +15,5 @@ export interface IUserRepository {
     getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null>;
     getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null>;
     createPostRepo(file:string,caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
+    getUserPosts(userId:mongoose.Types.ObjectId):Promise<PostDocument[]|null>
 }
