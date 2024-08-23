@@ -12,7 +12,8 @@ import {
     blockUserUserController,
     updateUserController,
     userPostControll,
-    getUserPostsControll
+    getUserPostsControll,
+    fetchJobsController
      // Corrected spelling
 } from '../../Adapters/userControll';  // Ensure the path and filename are correct
 
@@ -31,4 +32,5 @@ router.post('/block',blockUserUserController)
 router.post('/update',updateUserController)
 router.post('/userpost',upload.single('file'),userPostControll)
 router.get('/userposts/:userId', getUserPostsControll);
+router.get('/fetchJobs',fetchJobsController)
 export default router;

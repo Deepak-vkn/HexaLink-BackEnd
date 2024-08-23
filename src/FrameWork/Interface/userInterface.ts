@@ -3,6 +3,7 @@ import { UserDocument } from '../Databse/userSchema';
 import { OtpDocument } from '../Databse/otpSchema';
 import { TokenDocument } from '../Databse/tokenSchema';
 import { PostDocument } from '../Databse/postSchema';
+import Job,{ JobDocument } from '../Databse/jobSchema';
 import mongoose from 'mongoose';
 
 export interface IUserRepository {
@@ -16,4 +17,5 @@ export interface IUserRepository {
     getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null>;
     createPostRepo(file:string,caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
     getUserPosts(userId:mongoose.Types.ObjectId):Promise<PostDocument[]|null>
+    fetchJobsRepository():Promise<JobDocument[]|null>
 }

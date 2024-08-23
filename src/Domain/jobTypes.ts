@@ -3,6 +3,7 @@ import { Document, ObjectId } from 'mongoose';
 export interface Job  {
   package: number;
   expires: Date ; 
+  locatiom:string;
   opening: string; 
   status: string ; 
   applications: number;

@@ -215,3 +215,38 @@ export async function fetchJobsController(req: Request, res: Response): Promise<
 }
 
 
+export async function updateJobController(req: Request, res: Response): Promise<void> {
+    try {
+      // Extract job ID from the request parameters
+      const { jobId } = req.params;
+  
+      // Extract job data from the request body
+      const jobData: Partial<JobDocument> = req.body;
+  
+      console.log('Received job data:', jobData);
+      console.log('Received job ID:', jobId);
+  
+      // Call the service to update the job
+      const result = await companyUseCase.updateJobService(jobId, jobData);
+  
+      // Check the result and send appropriate response
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: result.message,
+          job: result.job,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+    } catch (error) {
+      console.error('Error in updateJobController:', error);
+      res.status(500).json({
+        success: false,
+        message: 'An internal server error occurred',
+      });
+    }
+  }

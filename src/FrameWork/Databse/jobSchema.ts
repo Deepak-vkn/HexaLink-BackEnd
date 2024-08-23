@@ -8,6 +8,7 @@ export interface JobDocument extends Job, Document {}
 const JobsSchema: Schema = new Schema({
   package: { type: Number, required: true },
   expires: { type: Date, required: true },
+  location: { type: String, required: true },
   opening: { type: String, required: true },
   status: { type: String, required: true },
   applications: { type: Number, default: 0 },

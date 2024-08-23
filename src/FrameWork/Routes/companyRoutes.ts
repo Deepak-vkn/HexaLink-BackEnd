@@ -3,7 +3,7 @@
 import express from 'express';
 import {registerCompanyController,verifyOtpCompanyController,
     loginCompanyController,resendOtpCompanyController,
-    resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController
+    resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController,updateJobController
 } from '../../Adapters/companyControll'
 
 const router = express.Router();
@@ -18,5 +18,6 @@ router.post('/resetPassword', resetPasswordCompanyController);
 router.post('/block',blockUserCompanyController)
 router.post('/createJob',createJobController)
 router.post('/fetchJobs',fetchJobsController)
+router.post('/updateJob/:jobId',updateJobController)
 
 export default router;

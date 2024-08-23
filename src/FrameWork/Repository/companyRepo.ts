@@ -68,8 +68,44 @@ export class CompanyRepository implements ICompanyRepository {
             return null;
         }
     }
-    fetchJobsRepository(companyId: mongoose.Types.ObjectId): Promise<JobDocument[] | null> {
+    async fetchJobsRepository(companyId: mongoose.Types.ObjectId): Promise<JobDocument[] | null> {
         return Job.find({ companyId }).exec(); 
     }
+    async updateJobRepository(
+        jobId: string,
+        jobData: Partial<JobDocument>
+      ): Promise<JobDocument | null> {
+        try {
+          // Check if the job exists
+          const existingJob = await Job.findById(jobId);
+          
+          if (!existingJob) {
+            console.log('Job not found');
+            return null; // Job not found
+          }
+      
+          // Update the job
+          const updatedJob = await Job.findByIdAndUpdate(
+            jobId,
+            jobData,
+            {
+              new: true,
+              runValidators: true,
+            }
+          );
+      
+          // Check if the update was successful
+          if (!updatedJob) {
+            console.log('Job update failed');
+            return null; // Job update failed
+          }
+      
+          console.log('Job successfully updated:', updatedJob);
+          return updatedJob; // Return the updated job
+        } catch (error) {
+          console.error('Error in updateJobRepository:', error);
+          throw new Error('Error updating job in repository');
+        }
+      }
     
 }

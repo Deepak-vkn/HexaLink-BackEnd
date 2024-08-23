@@ -275,3 +275,15 @@ export async function getUserPostsControll(req:Request,res:Response): Promise<an
     }
     
 }
+
+
+export async function fetchJobsController(req: Request, res: Response): Promise<void> {
+   
+    try {
+        const result = await userUseCase.fetchJobs();
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}

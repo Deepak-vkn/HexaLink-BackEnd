@@ -281,5 +281,33 @@ public async fetchJobs(companyId: mongoose.Types.ObjectId): Promise<{ success: b
   }
 }
 
+public async updateJobService(jobId: string, jobData: Partial<JobDocument>): Promise<{ success: boolean; message: string; job?: JobDocument }> {
+  console.log('Service layer: processing job update', jobId, jobData);
+  
+  try {
+    // Attempt to update the job using the repository
+    const updatedJob = await this.companyRepo.updateJobRepository(jobId, jobData);
+    if (!updatedJob) {
+      return {
+        success: false,
+        message: 'Failed to update job',
+      };
+    }
+    return {
+      success: true,
+      message: 'Job updated successfully',
+      job: updatedJob,
+    };
+  } catch (error) {
+    console.error('Error in updateJobService:', error);
+
+
+    return {
+      success: false,
+      message: 'An error occurred while updating the job',
+    };
+  }
+}
+
 }
 

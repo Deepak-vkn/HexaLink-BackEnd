@@ -4,6 +4,7 @@ import Token, { TokenDocument } from '../Databse/tokenSchema'; // Ensure this im
 import { IUserRepository } from '../Interface/userInterface'; // Ensure correct path
 import mongoose from 'mongoose';
 import Post, { PostDocument } from '../Databse/postSchema';
+import Job,{ JobDocument } from '../Databse/jobSchema';
 
 export class UserRepository implements IUserRepository {
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
@@ -75,6 +76,10 @@ export class UserRepository implements IUserRepository {
             console.error('Error fetching token by userId:', error);
             return null;
         }
+    }
+    fetchJobsRepository(): Promise<JobDocument[] | null> {
+        console.log('reched repo')
+            return Job.find().exec(); 
     }
     
 }

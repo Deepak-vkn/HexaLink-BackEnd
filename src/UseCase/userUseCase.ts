@@ -9,6 +9,7 @@ import { forgetPasswordCompanyController } from '../Adapters/companyControll';
 import { UserRepository } from '../FrameWork/Repository/userRepo';
 import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
 import { PostDocument } from '../FrameWork/Databse/postSchema';
+import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -317,5 +318,19 @@ export class UserUseCase {
             };
         }
     }
-    
+    public async fetchJobs(): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
+        try {
+            const jobs = await this.userRepository.fetchJobsRepository();
+      
+            if (jobs) {
+                return { success: true, message: 'Jobs fetched successfully', jobs };
+            } else {
+                return { success: false, message: 'No jobs found', jobs: [] };
+            }
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+            return { success: false, message: 'Error fetching jobs', jobs: [] };
+        }
+      }
+
 }
