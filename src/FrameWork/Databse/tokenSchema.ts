@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { Tokens } from '../../Domain/tokenType'; // Adjust the path to where your Tokens type is defined
+import { Tokens } from '../../Domain/tokenType'; 
 
 export interface TokenDocument extends Tokens, Document {}
 
 const TokenSchema: Schema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Adjust 'User' to your actual user model name
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
     token: { type: String, required: true },
     expireAt: { type: Date, required: true },
 });

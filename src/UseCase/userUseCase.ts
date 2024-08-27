@@ -124,7 +124,7 @@ export class UserUseCase {
             return { success: false, message: 'Acess Denied' };
         }
 
-        // Direct comparison of plain-text passwords
+    
         const isPasswordValid = user.password === password;
 
         if (!isPasswordValid) {
@@ -149,32 +149,31 @@ export class UserUseCase {
 
     public async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
         try {
-            // Attempt to decode and verify the JWT token
+          
             const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
     
-            // Find the token record in the database
+   
             const tokenRecord = await Token.findOne({ token });
     
             if (tokenRecord) {
-                // Check if the token has expired based on the token record's expireAt field
+
                 const currentTime = new Date();
                 if (tokenRecord.expireAt < currentTime) {
-                    // If token has expired, return an appropriate response
+                  
                     return { success: false, message: 'Link has expired' };
                 }
     
-                // Token is valid and not expired
                 return { success: true, tokenRecord };
             } else {
-                // Token record not found
+        
                 return { success: false, message: 'Invalid or expired token' };
             }
         } catch (error) {
-            // Handle specific JWT error
+          
             if (error instanceof jwt.TokenExpiredError) {
                 return { success: false, message: 'Token has expired' };
             } else {
-                // Handle other errors
+             
                 console.error('Error verifying token:', error);
                 return { success: false, message: 'Invalid token' };
             }
@@ -203,19 +202,18 @@ export class UserUseCase {
     }
     public async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
         try {
-            // Fetch the OTP document from the database
+            
             const otp = await Otp.findOne({ userId }).exec();
 
             if (!otp) {
                 return { success: false, message: 'OTP not found' };
             }
 
-            // Calculate the time left for resend
-            const currentTime = new Date();
-            const expiresAt = otp.expiresAt; // Timestamp when OTP expires
-            const timeLeft = Math.max(0, Math.floor((expiresAt.getTime() - currentTime.getTime()) / 1000)); // Convert milliseconds to seconds
 
-            // Send the response with the remaining time
+            const currentTime = new Date();
+            const expiresAt = otp.expiresAt; 
+            const timeLeft = Math.max(0, Math.floor((expiresAt.getTime() - currentTime.getTime()) / 1000)); 
+
             return { success: true, timeLeft };
         } catch (error) {
             console.error('Error fetching OTP:', error);
@@ -246,6 +244,7 @@ export class UserUseCase {
         }
     }
     public async updateUser(updateData: any): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+        console.log('Update data is', updateData);
         try {
             const existingUser = await this.userRepository.getUserById(updateData.userId);
     
@@ -253,20 +252,48 @@ export class UserUseCase {
                 return { success: false, message: 'User not found' };
             }
     
+            if (updateData.user.image) {
+                const imageUrl = await uploadCloudinary(updateData.user.image);
+                updateData.user.image = imageUrl;
+            }
+    
             for (const key in updateData.user) {
                 if (updateData.user.hasOwnProperty(key)) {
-                    (existingUser as any)[key] = updateData.user[key];
+                    if (key === 'education' && updateData.user[key]) {
+                        if (Array.isArray(updateData.user[key])) {
+                            existingUser.education = [
+                                ...(existingUser.education || []),
+                                ...updateData.user[key]
+                            ];
+                        } else {
+                            existingUser.education = [
+                                ...(existingUser.education || []),
+                                updateData.user[key]
+                            ];
+                        }
+                    } else if (key === 'skills' && Array.isArray(updateData.user[key])) {
+                        // Merge new skills with existing ones
+                        const updatedSkills = new Set([
+                            ...(existingUser.skill || []),
+                            ...updateData.user[key]
+                        ]);
+                        existingUser.skill = Array.from(updatedSkills);
+                    } else if (key !== 'education' && key !== 'skills') {
+                        (existingUser as any)[key] = updateData.user[key];
+                    }
                 }
             }
     
             await existingUser.save();
-    
             return { success: true, message: 'User updated successfully', user: existingUser };
         } catch (error) {
             console.error('Error updating user:', error);
             return { success: false, message: 'Error updating user' };
         }
     }
+    
+    
+    
 
     public async createPost(file: string, caption: string, userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}> {
       console.log('raeched usecse',file)
@@ -275,7 +302,6 @@ export class UserUseCase {
             if (!user) {
                 return { success: false, message: 'User not found' };
             }
-            
             let imageUrl: string  = '';
             if (file) {
                 imageUrl = await uploadCloudinary(file);
@@ -294,11 +320,11 @@ export class UserUseCase {
     }
     public async getPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string, posts?: PostDocument[] }> {
         try {
-            console.log('raeched backend')
+            
             const posts = await this.userRepository.getUserPosts(userId);
     
             if (posts && posts.length > 0) {
-                console.log('post are',posts)
+
                 return {
                     success: true,
                     message: 'Posts retrieved successfully',
@@ -333,4 +359,107 @@ export class UserUseCase {
         }
       }
 
+
+
+ public async applyForJob(applicationData: { 
+    userId: string; 
+    jobId: string; 
+    name: string; 
+    email: string; 
+    experience: string; 
+    resume: Buffer; 
+}): Promise<{ 
+    success: boolean; 
+    message: string; 
+    user?: UserDocument 
+}> {
+    try {
+        
+        const userId = new mongoose.Types.ObjectId(applicationData.userId);
+        const jobId = new mongoose.Types.ObjectId(applicationData.jobId);
+    
+        const user = await this.userRepository.getUserById(userId);
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'User not found'
+            };
+        }
+
+        const userJobs = (user.jobs || []).map(job => new mongoose.Types.ObjectId(job.toString()));
+
+        const jobAlreadyApplied = userJobs.some(job => job.equals(jobId));
+
+        if (jobAlreadyApplied) {
+            return {
+                success: false,
+                message: 'Job has already been applied for'
+            };
+        }
+
+        const result = await this.userRepository.createApplication(applicationData);
+
+        if (result.success) {
+            
+        const user2 = await this.userRepository.getUserById(userId);
+           
+            await this.userRepository.updateApplicationCount(applicationData.jobId)
+           
+
+            return {
+                success: true,
+                message: result.message,
+                user: user2 || undefined   
+            };
+        } else {
+            return {
+                success: false,
+                message: result.message
+            };
+        }
+    } catch (error) {
+        console.error('Error applying for job:', error);
+        return {
+            success: false,
+            message: 'Error applying for job'
+        };
+    }
+}
+
+
+public async updateUserField(
+    userId: string,
+    index: number,
+    field: 'education' | 'skill'
+  ): Promise<{ success: boolean; message: string; user?: UserDocument }> {
+    console.log('feild  is ',field)
+    try {
+      const userObjectId = new mongoose.Types.ObjectId(userId);
+      const existingUser = await this.userRepository.getUserById(userObjectId);
+  
+      if (!existingUser) {
+        return { success: false, message: 'User not found' };
+      }
+  
+      if (field === 'education') {
+        if (!existingUser.education || index < 0 || index >= existingUser.education.length) {
+          return { success: false, message: 'Invalid education index or education array is undefined' };
+        }
+        existingUser.education.splice(index, 1);
+      } else if (field === 'skill') {
+        if (!existingUser.skill || index < 0 || index >= existingUser.skill.length) {
+          return { success: false, message: 'Invalid skill index or skill array is undefined' };
+        }
+        existingUser.skill.splice(index, 1);
+      }
+  
+      await existingUser.save();
+      return { success: true, message: `${field.charAt(0).toUpperCase() + field.slice(1)} removed successfully`, user: existingUser };
+    } catch (error) {
+      console.error(`Error updating ${field}:`, error);
+      return { success: false, message: `Error updating ${field}` };
+    }
+  }
+  
 }

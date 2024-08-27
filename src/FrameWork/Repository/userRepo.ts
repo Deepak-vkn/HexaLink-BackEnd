@@ -5,8 +5,9 @@ import { IUserRepository } from '../Interface/userInterface'; // Ensure correct 
 import mongoose from 'mongoose';
 import Post, { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
-
+import Application,{ ApplicationDocument } from '../Databse/applicationSchema';
 export class UserRepository implements IUserRepository {
+    
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
         return User.create(userData);
     }
@@ -69,6 +70,7 @@ export class UserRepository implements IUserRepository {
             return null;
         }
     }
+
     async getUserPosts(userId: mongoose.Types.ObjectId): Promise<PostDocument[] | null> {
         try {
             return await Post.find({ userId }).exec();
@@ -77,9 +79,82 @@ export class UserRepository implements IUserRepository {
             return null;
         }
     }
-    fetchJobsRepository(): Promise<JobDocument[] | null> {
+    async  fetchJobsRepository(): Promise<JobDocument[] | null> {
         console.log('reched repo')
-            return Job.find().exec(); 
+            return Job.find({ status: 'active' }).sort({posted:-1}).exec(); 
     }
+
+    public async createApplication(applicationData: { 
+        userId: string; 
+        jobId: string; 
+        name: string; 
+        email: string; 
+        experience: string; 
+        resume: Buffer; 
+    }): Promise<{ 
+        success: boolean; 
+        message: string; 
+    }> {
+        try {
+            
+            const newApplication = new Application({
+                userId: applicationData.userId,
+                jobId: applicationData.jobId,
+                name: applicationData.name,
+                email: applicationData.email,
+                experience: applicationData.experience,
+                resume: applicationData.resume
+            });
+
+            const application = await newApplication.save();
     
+            if (application) {
+         
+                const updatedUser = await User.findByIdAndUpdate(
+                    applicationData.userId,
+                    { $addToSet: { jobs: applicationData.jobId } }, 
+                    { new: true } 
+                )
+ 
+                if (updatedUser) {
+                    return {
+                        success: true,
+                        message: 'Application saved successfully',
+      
+                    };
+                } else {
+                    return {
+                        success: false,
+                        message: 'User update failed'
+                    };
+                }
+            } else {
+                return {
+                    success: false,
+                    message: 'Failed to apply for job'
+                };
+            }
+        } catch (error) {
+            console.error('Error saving application:', error);
+    
+            return {
+                success: false,
+                message: 'Failed to save application'
+            };
+        }
+    }
+
+   public  async  updateApplicationCount(jobId: string): Promise<void> {
+        try {
+        
+            await Job.findByIdAndUpdate(
+                jobId,
+                { $inc: { applications: 1 } },
+                { new: true, useFindAndModify: false } 
+            ).exec();
+            console.log(`Job with ID ${jobId} application count updated.`);
+        } catch (error) {
+            console.error('Error updating application count:', error);
+        }
+    }
 }

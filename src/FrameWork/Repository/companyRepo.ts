@@ -97,11 +97,11 @@ export class CompanyRepository implements ICompanyRepository {
           // Check if the update was successful
           if (!updatedJob) {
             console.log('Job update failed');
-            return null; // Job update failed
+            return null; 
           }
       
           console.log('Job successfully updated:', updatedJob);
-          return updatedJob; // Return the updated job
+          return updatedJob; 
         } catch (error) {
           console.error('Error in updateJobRepository:', error);
           throw new Error('Error updating job in repository');

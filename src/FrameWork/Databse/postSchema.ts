@@ -3,7 +3,7 @@ import { Posts } from '../../Domain/postTypes';
 import { User } from '../../Domain/userType';
 export interface PostDocument extends Posts, Document {}
 
-// Define the schema for comments
+
 const CommentSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     comment: { type: String, required: true }

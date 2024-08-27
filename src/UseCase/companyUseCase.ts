@@ -160,34 +160,32 @@ export class CompanyUseCase {
     return resetToken;
 }
 
-public async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
+  public async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
     try {
-        // Attempt to decode and verify the JWT token
+        
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
 
-        // Find the token record in the database
         const tokenRecord = await Token.findOne({ token });
 
         if (tokenRecord) {
-            // Check if the token has expired based on the token record's expireAt field
+      
             const currentTime = new Date();
             if (tokenRecord.expireAt < currentTime) {
-                // If token has expired, return an appropriate response
+         
                 return { success: false, message: 'Link has expired' };
             }
 
-            // Token is valid and not expired
             return { success: true, tokenRecord };
         } else {
-            // Token record not found
+   
             return { success: false, message: 'Invalid or expired token' };
         }
     } catch (error) {
-        // Handle specific JWT error
+ 
         if (error instanceof jwt.TokenExpiredError) {
             return { success: false, message: 'Token has expired' };
         } else {
-            // Handle other errors
+           
             console.error('Error verifying token:', error);
             return { success: false, message: 'Invalid token' };
         }
@@ -240,7 +238,7 @@ public async createJobService(jobData: Partial<JobDocument>): Promise<{ success:
   console.log('Service layer: processing job creation');
   
   try {
-      // Attempt to create the job using the repository
+     
       const createdJob = await this.companyRepo.createJobRepository(jobData);
       
       if (!createdJob) {
@@ -250,7 +248,6 @@ public async createJobService(jobData: Partial<JobDocument>): Promise<{ success:
           };
       }
 
-      // If the job was successfully created, return success along with the created job
       return {
           success: true,
           message: 'Job created successfully',
@@ -259,7 +256,7 @@ public async createJobService(jobData: Partial<JobDocument>): Promise<{ success:
   } catch (error) {
       console.error('Error in createJobService:', error);
 
-      // Return failure status if an error occurs
+     
       return {
           success: false,
           message: 'An error occurred while creating the job',
@@ -285,7 +282,7 @@ public async updateJobService(jobId: string, jobData: Partial<JobDocument>): Pro
   console.log('Service layer: processing job update', jobId, jobData);
   
   try {
-    // Attempt to update the job using the repository
+    
     const updatedJob = await this.companyRepo.updateJobRepository(jobId, jobData);
     if (!updatedJob) {
       return {

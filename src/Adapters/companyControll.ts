@@ -171,15 +171,14 @@ export async function blockUserCompanyController(req: Request, res: Response): P
 
 export async function createJobController(req: Request, res: Response): Promise<void> {
     try {
-        // Extract job data from the request body
+     
         const jobData: Partial<JobDocument> = req.body;
 
         console.log('Received job data:', jobData);
 
-        // Call the service to create the job
+
         const result = await companyUseCase.createJobService(jobData);
 
-        // Check the result and send appropriate response
         if (result.success) {
             res.status(201).json({
                 success: true,
@@ -217,19 +216,17 @@ export async function fetchJobsController(req: Request, res: Response): Promise<
 
 export async function updateJobController(req: Request, res: Response): Promise<void> {
     try {
-      // Extract job ID from the request parameters
+
       const { jobId } = req.params;
   
-      // Extract job data from the request body
       const jobData: Partial<JobDocument> = req.body;
   
       console.log('Received job data:', jobData);
       console.log('Received job ID:', jobId);
-  
-      // Call the service to update the job
+
       const result = await companyUseCase.updateJobService(jobId, jobData);
   
-      // Check the result and send appropriate response
+   
       if (result.success) {
         res.status(200).json({
           success: true,

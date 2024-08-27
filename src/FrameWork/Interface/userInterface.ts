@@ -18,4 +18,14 @@ export interface IUserRepository {
     createPostRepo(file:string,caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
     getUserPosts(userId:mongoose.Types.ObjectId):Promise<PostDocument[]|null>
     fetchJobsRepository():Promise<JobDocument[]|null>
+    createApplication(applicationData: {
+        userId: string; 
+        jobId: string; 
+        name: string; 
+        email: string; 
+        experience: string; 
+        resume: Buffer; 
+    }): Promise<{ success: boolean, message: string }> 
+    updateApplicationCount(jobId: string): Promise<void>
+  
 }

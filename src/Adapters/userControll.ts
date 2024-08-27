@@ -208,13 +208,16 @@ export async function blockUserUserController(req: Request, res: Response): Prom
 
 
 
-export async function updateUserController (req:Request,res:Response){
+export async function updateUserController (req:Request,res:Response) :Promise<void>{
+    console.log('user updte raeched')
     const userUpdates = req.body;
-
+    if (req.file) {
+        userUpdates.image = req.file.path; 
+        console.log('image',userUpdates.image )
+    }
     try {
-     
-
-        const rseult=await userUseCase.updateUser(userUpdates)
+        const result=await userUseCase.updateUser(userUpdates)
+        res.json(result);
         
     } catch (error) {
         console.error('Error in updating user:', error);
@@ -228,17 +231,15 @@ export async function userPostControll(req: Request, res: Response) {
         const { file, caption, userId } = req.body;
         console.log('raecjed adapter')
 
-        // Validate request body
         if (!file || !caption || !userId) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        // Convert userId to mongoose.Types.ObjectId if necessary
         const userIdObj = new mongoose.Types.ObjectId(userId);
 
-        // Create post
+       
         const result = await userUseCase.createPost(file, caption, userIdObj);
-        return res.status(200).json(result);
+        return res.json(result);
     } catch (error) {
         console.error('Error in userPostControll:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
@@ -285,5 +286,50 @@ export async function fetchJobsController(req: Request, res: Response): Promise<
     } catch (error) {
         console.error('Error in fetching jobs:', error);
         res.json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}
+
+
+export async function applyJobController(req: Request, res: Response): Promise<void> {
+    try {
+        console.log('Reached backend job application');
+        console.log('Name:', req.body.name);
+        console.log('Email:', req.body.email);
+
+        const resume = req.file ? req.file.buffer : null; 
+        if (req.file) {
+            console.log('Uploaded File:', req.file);
+        } else {
+            console.log('No file uploaded');
+        }
+
+        const applicationData :any= {
+            userId: req.body.userId, 
+            jobId: req.body.jobId, 
+            name: req.body.name, 
+            email: req.body.email, 
+            experience: req.body.experience, 
+            resume, 
+        };
+        console.log(applicationData)
+   
+        const result = await userUseCase.applyForJob(applicationData);
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error in job application:', error);
+        res.json({ success: false, message: 'Error in job application' });
+    }
+}
+
+export async function updateEducationController(req: Request, res: Response): Promise<void> {
+    console.log('raeched backend of eduction')
+    try {
+        const { userId, index,field} = req.body; 
+        const result=await userUseCase.updateUserField(userId,index,field)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }

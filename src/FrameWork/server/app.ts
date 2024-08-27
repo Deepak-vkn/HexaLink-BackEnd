@@ -24,8 +24,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '50mb' })); // Adjust the limit as needed
+
+// Increase the limit for URL-encoded payloads
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.use('/', userRouter);
 app.use('/company', companyRouter);

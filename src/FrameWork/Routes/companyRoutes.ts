@@ -1,6 +1,7 @@
 
 // backend/src/framework/router/userRouter.ts
 import express from 'express';
+import jwtVerifyCompamny from '../utilits/jwtVerifyUser'
 import {registerCompanyController,verifyOtpCompanyController,
     loginCompanyController,resendOtpCompanyController,
     resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController,updateJobController

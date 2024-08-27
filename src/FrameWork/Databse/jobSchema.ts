@@ -17,7 +17,7 @@ const JobsSchema: Schema = new Schema({
   posted: { type: Date, default: Date.now },
   description: { type: String, required: true },
   level: { type: String, required: true },
-  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true }, // Reference to the Company
+  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true }, 
   title: { type: String, required: true },
   applicants: [{ type: Schema.Types.ObjectId,  }],
 
