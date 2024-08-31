@@ -16,7 +16,9 @@ import {
     getUserPostsControll,
     fetchJobsController,
     applyJobController,
-    updateEducationController
+    updateEducationController,
+    searchUsersControll,
+    fetchFllowControll
 
 } from '../../Adapters/userControll'; 
 
@@ -43,4 +45,6 @@ router.get('/userposts/:userId', getUserPostsControll);
 router.get('/fetchJobs',fetchJobsController)
 router.post('/applyJob',upload.single('file'),applyJobController)
 router.post('/updateEducation',updateEducationController)
+router.post('/search',searchUsersControll)
+router.get('/fetchFollow', fetchFllowControll);
 export default router;

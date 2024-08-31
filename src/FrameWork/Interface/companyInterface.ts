@@ -11,6 +11,6 @@ export interface ICompanyRepository {
     deleteOtpById(userId:  mongoose.Types.ObjectId): Promise<void>;
     getCompanyById(userId:  mongoose.Types.ObjectId): Promise<CompanyDocument | null>;
     createJobRepository(jobData: Partial<JobDocument>): Promise<JobDocument | null>;
-    fetchJobsRepository(companyId:mongoose.Types.ObjectId):Promise<JobDocument[]|null>
+    fetchJobsRepository(companyId:mongoose.Types.ObjectId,sortBy: string):Promise<JobDocument[]|null>
     updateJobRepository(jobId: string, jobData: Partial<JobDocument>): Promise<JobDocument | null>;
 }

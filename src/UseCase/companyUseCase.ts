@@ -263,11 +263,12 @@ public async createJobService(jobData: Partial<JobDocument>): Promise<{ success:
       };
   }
 }
-public async fetchJobs(companyId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
-  try {
-      const jobs = await this.companyRepo.fetchJobsRepository(companyId);
 
-      if (jobs) {
+public async fetchJobs(companyId: mongoose.Types.ObjectId, sortBy: string): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
+  try {
+      const jobs = await this.companyRepo.fetchJobsRepository(companyId, sortBy);
+
+      if (jobs && jobs.length > 0) {
           return { success: true, message: 'Jobs fetched successfully', jobs };
       } else {
           return { success: false, message: 'No jobs found', jobs: [] };
@@ -277,6 +278,7 @@ public async fetchJobs(companyId: mongoose.Types.ObjectId): Promise<{ success: b
       return { success: false, message: 'Error fetching jobs', jobs: [] };
   }
 }
+
 
 public async updateJobService(jobId: string, jobData: Partial<JobDocument>): Promise<{ success: boolean; message: string; job?: JobDocument }> {
   console.log('Service layer: processing job update', jobId, jobData);

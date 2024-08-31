@@ -68,9 +68,19 @@ export class CompanyRepository implements ICompanyRepository {
             return null;
         }
     }
-    async fetchJobsRepository(companyId: mongoose.Types.ObjectId): Promise<JobDocument[] | null> {
-        return Job.find({ companyId }).exec(); 
+    async fetchJobsRepository(companyId: mongoose.Types.ObjectId, sortBy: string): Promise<JobDocument[] | null> {
+        // Create the query object based on the provided sortBy value
+        const query: { companyId: mongoose.Types.ObjectId, status?: string } = { companyId };
+    
+        if (sortBy !== 'all') {
+            query.status = sortBy;  // Filter by status if it's not 'all'
+        }
+    
+        // Execute the query with sorting by creation date in descending order
+        return Job.find(query).sort({ createdAt: -1 }).exec();
     }
+    
+    
     async updateJobRepository(
         jobId: string,
         jobData: Partial<JobDocument>

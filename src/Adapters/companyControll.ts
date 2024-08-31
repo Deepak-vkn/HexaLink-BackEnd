@@ -200,16 +200,21 @@ export async function createJobController(req: Request, res: Response): Promise<
     }
 }
 
+
 export async function fetchJobsController(req: Request, res: Response): Promise<void> {
-    const { companyId } = req.body;
-    console.log('Fetching jobs for company:', req.body);
+    let { companyId, sortBy } = req.body; // Extract sortBy from the request body
+    console.log('Fetching jobs for company:', companyId, 'with sort:', sortBy);
+    if (!sortBy) {
+        sortBy = 'active';
+    }
 
     try {
-        const result = await companyUseCase.fetchJobs(companyId);
+        // Pass both companyId and sortBy to the use case function
+        const result = await companyUseCase.fetchJobs(companyId, sortBy);
         res.json(result);
     } catch (error) {
         console.error('Error in fetching jobs:', error);
-        res.json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+        res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
     }
 }
 

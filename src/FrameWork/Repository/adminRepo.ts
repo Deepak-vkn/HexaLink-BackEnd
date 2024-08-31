@@ -9,9 +9,16 @@ export class AdminRepository implements IAdminRepository {
         return Admin.findOne({ email }).exec();
     }
 
-    async fetchUsers(): Promise<UserDocument[]> {
-        return User.find()
+
+    async  fetchUsers(query?: string): Promise<UserDocument[]> {
+        let filter: any = { is_block: false }; 
+    
+        if (query) {
+            filter.name = { $regex: `^${query}`, $options: 'i' }; 
+        }
+        return User.find(filter);
     }
+    
     async fetchCompany(): Promise<CompanyDocument[]> {
         return Company.find()
     }

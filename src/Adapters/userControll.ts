@@ -323,7 +323,6 @@ export async function applyJobController(req: Request, res: Response): Promise<v
 }
 
 export async function updateEducationController(req: Request, res: Response): Promise<void> {
-    console.log('raeched backend of eduction')
     try {
         const { userId, index,field} = req.body; 
         const result=await userUseCase.updateUserField(userId,index,field)
@@ -333,3 +332,43 @@ export async function updateEducationController(req: Request, res: Response): Pr
         res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }
+
+export async function searchUsersControll(req: Request, res: Response): Promise<void> {
+
+
+    try {
+        const { query} = req.body; 
+
+        const result=await userUseCase.searchUsersUseCase(query)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function fetchFllowControll(req: Request, res: Response): Promise<void> {
+    const { userId } = req.query;
+    console.log('User ID:', userId);
+  
+    try {
+      if (!userId) {
+        res.json({ success: false, message: 'User ID is required' });
+        return;
+      }
+  
+      const userObjectId = new mongoose.Types.ObjectId(userId as string); 
+  
+      const result = await userUseCase.fetchFllowUsecase(userObjectId);
+      if (result) {
+        res.json(result);
+      } else {
+        res.json({ success: false, message: 'Follow document not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching follow document:', error);
+      res.status(500).json({ success: false, message: 'Error fetching follow document' });
+    }
+  }
+

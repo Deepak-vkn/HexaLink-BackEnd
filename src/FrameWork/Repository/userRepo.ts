@@ -6,10 +6,16 @@ import mongoose from 'mongoose';
 import Post, { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
 import Application,{ ApplicationDocument } from '../Databse/applicationSchema';
+import Follow,{ FollowDocument } from '../Databse/followSchema';
 export class UserRepository implements IUserRepository {
     
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
-        return User.create(userData);
+        const user=await  User.create(userData);
+
+        if(user){
+            await Follow.create({ userId: user._id });
+        }
+        return user
     }
 
     async findUserByEmail(email: string): Promise<UserDocument | null> {
@@ -46,7 +52,6 @@ export class UserRepository implements IUserRepository {
     }
 
     async getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
- 
         return User.findById(userId).exec();
     }
 
@@ -79,11 +84,15 @@ export class UserRepository implements IUserRepository {
             return null;
         }
     }
-    async  fetchJobsRepository(): Promise<JobDocument[] | null> {
-        console.log('reched repo')
-            return Job.find({ status: 'active' }).sort({posted:-1}).exec(); 
+    async fetchJobsRepository(): Promise<JobDocument[] | null> {
+        console.log('Reached repository');
+        const currentDate = new Date();
+    
+        return Job.find({ expires: { $gte: currentDate } }) 
+                  .sort({ posted: -1 }) 
+                  .exec();
     }
-
+    
     public async createApplication(applicationData: { 
         userId: string; 
         jobId: string; 
@@ -157,4 +166,17 @@ export class UserRepository implements IUserRepository {
             console.error('Error updating application count:', error);
         }
     }
+    public  async searchUsers(query?:string): Promise<UserDocument[]> {
+        let filter: any = { is_block: false }; 
+        if (query) {
+            filter.name = { $regex: `^${query}`, $options: 'i' }; 
+        }
+
+       const user= await  User.find(filter).exec()
+ 
+         return user
+    }
+    public async fetchFollow(userId: mongoose.Types.ObjectId): Promise<FollowDocument | null> {
+        return Follow.findOne({ userId: userId }).exec(); 
+      }
 }

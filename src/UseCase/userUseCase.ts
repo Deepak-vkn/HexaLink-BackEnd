@@ -10,6 +10,7 @@ import { UserRepository } from '../FrameWork/Repository/userRepo';
 import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
 import { PostDocument } from '../FrameWork/Databse/postSchema';
 import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
+import { FollowDocument } from '../FrameWork/Databse/followSchema';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -461,5 +462,26 @@ public async updateUserField(
       return { success: false, message: `Error updating ${field}` };
     }
   }
-  
-}
+  public async searchUsersUseCase(query:string): Promise<UserDocument[]> {
+    const users = await this.userRepository.searchUsers(query); 
+    return users
+    }
+
+    public async fetchFllowUsecase(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; follow: FollowDocument | null }> {
+        try {
+          const follow = await this.userRepository.fetchFollow(userId);
+          if (follow) {
+            return { success: true, follow };
+          }
+
+          return { success: false, follow: null };
+        } catch (error) {
+          console.error('Error fetching follow document:', error);
+      
+          // In case of error, return success: false with follow as null
+          return { success: false, follow: null };
+        }
+      }
+      
+
+    }

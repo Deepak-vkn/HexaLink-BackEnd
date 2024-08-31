@@ -4,6 +4,7 @@ import { OtpDocument } from '../Databse/otpSchema';
 import { TokenDocument } from '../Databse/tokenSchema';
 import { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
+import Follow,{FollowDocument} from '../Databse/followSchema';
 import mongoose from 'mongoose';
 
 export interface IUserRepository {
@@ -27,5 +28,7 @@ export interface IUserRepository {
         resume: Buffer; 
     }): Promise<{ success: boolean, message: string }> 
     updateApplicationCount(jobId: string): Promise<void>
+    searchUsers(query?:string):Promise<UserDocument[]>;
+    fetchFollow(userId: mongoose.Types.ObjectId):Promise<FollowDocument| null>;
   
 }
