@@ -128,7 +128,6 @@ export class CompanyUseCase {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.response);
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
@@ -235,7 +234,6 @@ public async blockCompany(userId: mongoose.Types.ObjectId):Promise<{ success: bo
   }
 }
 public async createJobService(jobData: Partial<JobDocument>): Promise<{ success: boolean; message: string; job?: JobDocument }> {
-  console.log('Service layer: processing job creation');
   
   try {
      
@@ -281,7 +279,7 @@ public async fetchJobs(companyId: mongoose.Types.ObjectId, sortBy: string): Prom
 
 
 public async updateJobService(jobId: string, jobData: Partial<JobDocument>): Promise<{ success: boolean; message: string; job?: JobDocument }> {
-  console.log('Service layer: processing job update', jobId, jobData);
+
   
   try {
     

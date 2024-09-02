@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Company, { CompanyDocument } from '../Databse/companySchema';
 import Otp, { OtpDocument } from '../Databse/otpSchema';
-import { ICompanyRepository } from '../Interface/companyInterface'; // Assuming you have this interface in the same directory
+import { ICompanyRepository } from '../Interface/companyInterface'; 
 import Job,{ JobDocument } from '../Databse/jobSchema';
 
 export class CompanyRepository implements ICompanyRepository {
@@ -24,7 +24,7 @@ export class CompanyRepository implements ICompanyRepository {
     }
 
     async saveOtp(otp: number, userId:  mongoose.Types.ObjectId, expiresAt: Date): Promise<OtpDocument> {
-        console.log('Reached save otp');
+        
         const newOtp = new Otp({
             otp,
             userId,
@@ -36,7 +36,7 @@ export class CompanyRepository implements ICompanyRepository {
 
     async findOtpById(companyId:  mongoose.Types.ObjectId): Promise<number | null> {
         try {
-            console.log('Reached find by id otp');
+         
             const otpRecord = await Otp.findOne({ userId: companyId }).exec();
             if (otpRecord) {
                 return otpRecord.otp;
@@ -69,14 +69,14 @@ export class CompanyRepository implements ICompanyRepository {
         }
     }
     async fetchJobsRepository(companyId: mongoose.Types.ObjectId, sortBy: string): Promise<JobDocument[] | null> {
-        // Create the query object based on the provided sortBy value
+
         const query: { companyId: mongoose.Types.ObjectId, status?: string } = { companyId };
     
         if (sortBy !== 'all') {
-            query.status = sortBy;  // Filter by status if it's not 'all'
+            query.status = sortBy;  
         }
     
-        // Execute the query with sorting by creation date in descending order
+      
         return Job.find(query).sort({ createdAt: -1 }).exec();
     }
     
@@ -86,15 +86,13 @@ export class CompanyRepository implements ICompanyRepository {
         jobData: Partial<JobDocument>
       ): Promise<JobDocument | null> {
         try {
-          // Check if the job exists
           const existingJob = await Job.findById(jobId);
           
           if (!existingJob) {
-            console.log('Job not found');
-            return null; // Job not found
+        
+            return null; 
           }
       
-          // Update the job
           const updatedJob = await Job.findByIdAndUpdate(
             jobId,
             jobData,
@@ -103,14 +101,10 @@ export class CompanyRepository implements ICompanyRepository {
               runValidators: true,
             }
           );
-      
-          // Check if the update was successful
+
           if (!updatedJob) {
-            console.log('Job update failed');
             return null; 
           }
-      
-          console.log('Job successfully updated:', updatedJob);
           return updatedJob; 
         } catch (error) {
           console.error('Error in updateJobRepository:', error);

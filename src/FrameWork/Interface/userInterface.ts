@@ -6,6 +6,8 @@ import { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
 import Follow,{FollowDocument} from '../Databse/followSchema';
 import mongoose from 'mongoose';
+import Notification,{NotificationDocument} from '../Databse/notificationSchema';
+
 
 export interface IUserRepository {
     createUser(userData: Partial<UserDocument>): Promise<UserDocument>;
@@ -30,5 +32,7 @@ export interface IUserRepository {
     updateApplicationCount(jobId: string): Promise<void>
     searchUsers(query?:string):Promise<UserDocument[]>;
     fetchFollow(userId: mongoose.Types.ObjectId):Promise<FollowDocument| null>;
+    followUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string }> 
+    fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]>
   
 }

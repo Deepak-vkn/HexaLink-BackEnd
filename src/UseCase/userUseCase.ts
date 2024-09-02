@@ -11,6 +11,9 @@ import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
 import { PostDocument } from '../FrameWork/Databse/postSchema';
 import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
 import { FollowDocument } from '../FrameWork/Databse/followSchema';
+import { NotificationDocument } from '../FrameWork/Databse/notificationSchema';
+
+
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -199,6 +202,7 @@ export class UserUseCase {
     }
 
     public async getUser(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+        console.log('usecase is ',userId)
         return await this.userRepository.findUserById(userId);
     }
     public async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
@@ -245,7 +249,7 @@ export class UserUseCase {
         }
     }
     public async updateUser(updateData: any): Promise<{ success: boolean, message: string, user?: UserDocument }> {
-        console.log('Update data is', updateData);
+
         try {
             const existingUser = await this.userRepository.getUserById(updateData.userId);
     
@@ -297,7 +301,6 @@ export class UserUseCase {
     
 
     public async createPost(file: string, caption: string, userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}> {
-      console.log('raeched usecse',file)
         try {
             const user = await this.userRepository.findUserById(userId);
             if (!user) {
@@ -434,7 +437,7 @@ public async updateUserField(
     index: number,
     field: 'education' | 'skill'
   ): Promise<{ success: boolean; message: string; user?: UserDocument }> {
-    console.log('feild  is ',field)
+    
     try {
       const userObjectId = new mongoose.Types.ObjectId(userId);
       const existingUser = await this.userRepository.getUserById(userObjectId);
@@ -482,6 +485,51 @@ public async updateUserField(
           return { success: false, follow: null };
         }
       }
+      public async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
+        try {
+            console.log('folow data are,',userId, followId)
+          const response = await this.userRepository.followUser(userId, followId);
+      
+          // Return the response directly or modify it as needed
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
+
+      public async fetchNotification(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; data?: NotificationDocument[] }> {
+        try {
+            console.log('Notification data for user:', userId);
+            
+            // Fetch the notifications using the userId
+            const notifications = await this.userRepository.fetchNotifications(userId);
+    
+            if (notifications.length > 0) {
+                // Return success if notifications are found
+                return {
+                    success: true,
+                    message: 'Notifications retrieved successfully',
+                    data: notifications
+                };
+            } else {
+                // Handle case where no notifications are found
+                return {
+                    success: true,
+                    message: 'No notifications found',
+                    data: []
+                };
+            }
+        } catch (error) {
+            console.error('Error in fetchNotification service method:', error);
+            return { 
+                success: false, 
+                message: 'An error occurred while fetching notifications' 
+            };
+        }
+    }
+    
       
 
     }

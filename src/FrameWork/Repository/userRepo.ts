@@ -7,6 +7,9 @@ import Post, { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
 import Application,{ ApplicationDocument } from '../Databse/applicationSchema';
 import Follow,{ FollowDocument } from '../Databse/followSchema';
+import Notification,{NotificationDocument} from '../Databse/notificationSchema';
+
+
 export class UserRepository implements IUserRepository {
     
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
@@ -32,7 +35,6 @@ export class UserRepository implements IUserRepository {
     }
 
     async saveOtp(otp: number, userId:  mongoose.Types.ObjectId, expiresAt: Date): Promise<OtpDocument> {
-        console.log('Reached save otp');
         const newOtp = new Otp({ otp, userId, expiresAt });
         await newOtp.save();
         return newOtp;
@@ -66,7 +68,7 @@ export class UserRepository implements IUserRepository {
 
     async createPostRepo(image: string, caption: string, userId: mongoose.Types.ObjectId): Promise<PostDocument| null> {
         try {
-            console.log('are hed repo')
+           
             const post = new Post({ image, caption, userId });
             const savedPost = await post.save();
             return savedPost;
@@ -85,7 +87,7 @@ export class UserRepository implements IUserRepository {
         }
     }
     async fetchJobsRepository(): Promise<JobDocument[] | null> {
-        console.log('Reached repository');
+     
         const currentDate = new Date();
     
         return Job.find({ expires: { $gte: currentDate } }) 
@@ -161,7 +163,7 @@ export class UserRepository implements IUserRepository {
                 { $inc: { applications: 1 } },
                 { new: true, useFindAndModify: false } 
             ).exec();
-            console.log(`Job with ID ${jobId} application count updated.`);
+         
         } catch (error) {
             console.error('Error updating application count:', error);
         }
@@ -179,4 +181,82 @@ export class UserRepository implements IUserRepository {
     public async fetchFollow(userId: mongoose.Types.ObjectId): Promise<FollowDocument | null> {
         return Follow.findOne({ userId: userId }).exec(); 
       }
+    public async  followUser(userId:  mongoose.Types.ObjectId, followId:  mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
+        try {
+          // Find the Follow document for the user
+          const userDoc = await Follow.findOne({ userId });
+          const followDoc = await Follow.findOne({ userId:followId });
+          console.log('user is ',userDoc)
+          console.log('follower is ',followDoc)
+      
+          if (!userDoc||!followDoc) {
+            return { success: false, message: 'User not found' };
+          }
+      
+          // Check if the followId is already in the following array
+          const existingFollow = userDoc.following.find(follow => follow.id.toString() === followId.toString());
+          const existingFollower = userDoc.followers.find(follow => follow.id.toString() === userId.toString());
+          if (existingFollow&& existingFollower) {
+            // If already following, update the status to 'approved'
+            existingFollow.status = 'approved';
+            existingFollower.status = 'approved';
+            await userDoc.save();
+
+
+            await Notification.create({
+                userId: followId, // The user who receives the notification
+                type: 'follow',
+                message: `${userId} accepted your follow request.`,
+                sourceId: userId, // The user who triggered the notification
+              
+                isRead: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                redirectUrl: `/profile/${userId}`,
+                status: 'sent',
+              });
+
+            return { success: true, message: 'Follow  resquest accepted ' };
+          } else {
+            // If not already following, add the new followId with status 'requested'
+            userDoc.following.push({
+              id: followId as mongoose.Types.ObjectId ,
+              followTime: new Date(), // Set the follow time to the current date and time
+              status: 'requested'
+            } as any);
+            followDoc.followers.push({
+                id: userId as mongoose.Types.ObjectId ,
+                followTime: new Date(), // Set the follow time to the current date and time
+                status: 'requested'
+              } as any);
+          }
+          await Notification.create({
+            userId: followId, // The user who receives the notification
+            type: 'follow',
+            message: `${userId} sent you a follow request.`,
+            sourceId: userId, // The user who triggered the notification
+            isRead: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            redirectUrl: `/profile/${userId}`,
+            status: 'sent',
+          });
+
+          await userDoc.save();
+          await followDoc.save();
+          return { success: true, message: 'Follow request send successfully' };
+      
+        } catch (error) {
+          console.error('Error in followUser function:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+}
+
+
+public async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
+    return Notification.find({ userId: userId }).exec(); 
+}
+
+
+
 }

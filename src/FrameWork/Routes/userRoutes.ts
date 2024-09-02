@@ -18,7 +18,7 @@ import {
     applyJobController,
     updateEducationController,
     searchUsersControll,
-    fetchFllowControll
+    fetchFllowControll,followUserControll,fetchNotificationControll,fetchUserControll
 
 } from '../../Adapters/userControll'; 
 
@@ -29,7 +29,9 @@ const upload = multer({
     }
 });
 
+
 const router = express.Router();
+
 router.post('/register', registerUserController);
 router.post('/verifyotp', verifyOtpUserController);
 router.post('/login', loginUserController);
@@ -47,4 +49,10 @@ router.post('/applyJob',upload.single('file'),applyJobController)
 router.post('/updateEducation',updateEducationController)
 router.post('/search',searchUsersControll)
 router.get('/fetchFollow', fetchFllowControll);
+router.post('/followUser', followUserControll);
+router.get('/fetchNotification',fetchNotificationControll)
+router.get('/fetchUser', fetchUserControll);
+
+
+
 export default router;

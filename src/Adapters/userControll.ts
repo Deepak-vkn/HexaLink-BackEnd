@@ -209,11 +209,11 @@ export async function blockUserUserController(req: Request, res: Response): Prom
 
 
 export async function updateUserController (req:Request,res:Response) :Promise<void>{
-    console.log('user updte raeched')
+
     const userUpdates = req.body;
     if (req.file) {
         userUpdates.image = req.file.path; 
-        console.log('image',userUpdates.image )
+      
     }
     try {
         const result=await userUseCase.updateUser(userUpdates)
@@ -258,7 +258,7 @@ export async function getUserPostsControll(req:Request,res:Response): Promise<an
         const objectId = new mongoose.Types.ObjectId(userId);
         const result=  await userUseCase.getPosts(objectId)
         if (result.success) {
-            console.log(result.posts)
+  
             res.json({
                 success:true,
                 message: result.message,
@@ -311,7 +311,7 @@ export async function applyJobController(req: Request, res: Response): Promise<v
             experience: req.body.experience, 
             resume, 
         };
-        console.log(applicationData)
+      
    
         const result = await userUseCase.applyForJob(applicationData);
 
@@ -351,13 +351,12 @@ export async function searchUsersControll(req: Request, res: Response): Promise<
 export async function fetchFllowControll(req: Request, res: Response): Promise<void> {
     const { userId } = req.query;
     console.log('User ID:', userId);
-  
+    console.log('reachedin backend')
     try {
       if (!userId) {
         res.json({ success: false, message: 'User ID is required' });
         return;
       }
-  
       const userObjectId = new mongoose.Types.ObjectId(userId as string); 
   
       const result = await userUseCase.fetchFllowUsecase(userObjectId);
@@ -371,4 +370,58 @@ export async function fetchFllowControll(req: Request, res: Response): Promise<v
       res.status(500).json({ success: false, message: 'Error fetching follow document' });
     }
   }
+
+  export async function followUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,followId} = req.body; 
+        const result=await userUseCase.followUser(userId,followId)
+        console.log('result  follow is ', result)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function fetchNotificationControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId } = req.query;
+
+        if (typeof userId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid user ID format' });
+            return;
+        }
+
+        const objectId = new mongoose.Types.ObjectId(userId);
+        const result=await userUseCase.fetchNotification(objectId)
+        console.log('result  follow is ', result)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+
+export async function fetchUserControll(req: Request, res: Response): Promise<void> {
+   console.log('raeched abckend for fetch user')
+    try {
+        const { userId } = req.query;
+        console.log('query is ',userId)
+        if (typeof userId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid user ID format' });
+            return;
+        }
+        const objectId = new mongoose.Types.ObjectId(userId)
+        const result = await userUseCase.getUser(objectId);
+        if(result){
+            console.log(result)
+        }
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}
 
