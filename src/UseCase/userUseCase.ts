@@ -485,10 +485,11 @@ public async updateUserField(
           return { success: false, follow: null };
         }
       }
-      public async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
+      public async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
             console.log('folow data are,',userId, followId)
           const response = await this.userRepository.followUser(userId, followId);
+          console.log(response)
       
           // Return the response directly or modify it as needed
           return response;
@@ -529,7 +530,35 @@ public async updateUserField(
             };
         }
     }
-    
+    public async unFollowUser(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+        try {
+            console.log('folow data are,',userId, unfollowId)
+          const response = await this.userRepository.unfollowUser(userId, unfollowId);
+          console.log(response)
       
+          // Return the response directly or modify it as needed
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
+
+      public async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+        try {
+            console.log('folow data are,',postId,)
+          const response = await this.userRepository.likepost(postId,userId);
+          console.log(response)
+      
+          // Return the response directly or modify it as needed
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
+
 
     }

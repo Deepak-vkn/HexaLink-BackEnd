@@ -18,7 +18,7 @@ import {
     applyJobController,
     updateEducationController,
     searchUsersControll,
-    fetchFllowControll,followUserControll,fetchNotificationControll,fetchUserControll
+    fetchFllowControll,followUserControll,fetchNotificationControll,fetchUserControll,unFollowUserControll,likeUserControll
 
 } from '../../Adapters/userControll'; 
 
@@ -52,6 +52,8 @@ router.get('/fetchFollow', fetchFllowControll);
 router.post('/followUser', followUserControll);
 router.get('/fetchNotification',fetchNotificationControll)
 router.get('/fetchUser', fetchUserControll);
+router.post('/unFollowUser', unFollowUserControll);
+router.get('/likepost', likeUserControll);
 
 
 

@@ -425,3 +425,46 @@ export async function fetchUserControll(req: Request, res: Response): Promise<vo
     }
 }
 
+
+export async function unFollowUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,unfollowId} = req.body; 
+        console.log('userir and followid is',userId,unfollowId)
+        const result=await userUseCase.unFollowUser(userId,unfollowId)
+        console.log('result  follow is ', result)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function likeUserControll(req: Request, res: Response): Promise<void> {
+    console.log('Reached backend for like post');
+    try {
+        const { postId, userId } = req.query;
+
+        console.log('Query params:', { postId, userId });
+
+        // Validate postId and userId
+        if (typeof postId !== 'string' || typeof userId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+
+        // Convert postId and userId to ObjectId
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+
+        // Call the use case to like the post
+        const result = await userUseCase.likepost(postObjectId, userId);
+
+            console.log('Like post result:', result);
+            res.json(result)
+        
+    } catch (error) {
+        console.error('Error in likeUserControll:', error);
+        res.status(500).json({ success: false, message: 'Error in liking the post' });
+    }
+}
+ 

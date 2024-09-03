@@ -32,7 +32,9 @@ export interface IUserRepository {
     updateApplicationCount(jobId: string): Promise<void>
     searchUsers(query?:string):Promise<UserDocument[]>;
     fetchFollow(userId: mongoose.Types.ObjectId):Promise<FollowDocument| null>;
-    followUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string }> 
+    followUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string,followDoc?:FollowDocument }> 
     fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]>
+    unfollowUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string,followDoc?:FollowDocument }> 
+    likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string ,postDoc?: PostDocument }> 
   
 }
