@@ -464,4 +464,34 @@ export async function likeUserControll(req: Request, res: Response): Promise<voi
         res.status(500).json({ success: false, message: 'Error in liking the post' });
     }
 }
- 
+
+
+export async function updatePostUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { caption,postId} = req.body; 
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        console.log('postId and Caption is', caption,postId)
+        const result=await userUseCase.updatePost(postObjectId,caption)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+export async function deletePostUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { postId} = req.query; 
+        
+        if (typeof postId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        console.log('postId  is', postId)
+        const result=await userUseCase.deletePost(postObjectId)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}

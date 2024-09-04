@@ -36,5 +36,7 @@ export interface IUserRepository {
     fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]>
     unfollowUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string,followDoc?:FollowDocument }> 
     likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string ,postDoc?: PostDocument }> 
+    updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }>
+    deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }>
   
 }

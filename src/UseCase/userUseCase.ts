@@ -559,6 +559,33 @@ public async updateUserField(
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
+      public async updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+        try {
+            console.log('update post data are,',postId,caption)
+          const response = await this.userRepository.updatePost(postId,caption);
+          console.log(response)
+      
+          // Return the response directly or modify it as needed
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
 
+      public async deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
+        try {
+            console.log('update post data are,',postId)
+          const response = await this.userRepository.deletePost(postId);
+          console.log(response)
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
 
+      
     }

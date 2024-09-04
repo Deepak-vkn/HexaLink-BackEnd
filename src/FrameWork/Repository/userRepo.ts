@@ -332,4 +332,64 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         return { success: false, message: 'An error occurred while processing the like' };
     }
 }
+     
+    async  updatePost(postId: mongoose.Types.ObjectId, caption: string): Promise<{ success: boolean; message: string; postDoc?: PostDocument }> {
+    try {
+      // Update the post by ID
+      const updatedPost = await Post.findByIdAndUpdate(
+        postId, 
+        { caption: caption },  // Update the caption field
+        { new: true, runValidators: true } // Return the updated document and run validators
+      ).exec();
+  
+      // Check if the post was updated
+      if (!updatedPost) {
+        return {
+          success: false,
+          message: 'Post not found',
+        };
+      }
+  
+      return {
+        success: true,
+        message: 'Post updated successfully',
+        postDoc: updatedPost,
+      };
+    } catch (error) {
+      console.error('Error updating post:', error);
+      return {
+        success: false,
+        message: 'Error updating post',
+      };
+    }
+  }
+
+  async  deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string;  }> {
+    try {
+      // Find by ID and delete the post
+      const deletedPost = await Post.findByIdAndDelete(postId).exec();
+  
+      // Check if the post was found and deleted
+      if (!deletedPost) {
+        return {
+          success: false,
+          message: 'Post not found',
+        };
+      }
+  
+      return {
+        success: true,
+        message: 'Post deleted successfully',
+       
+      };
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      return {
+        success: false,
+        message: 'Error deleting post',
+      };
+    }
+  }
+ 
+  
 }
