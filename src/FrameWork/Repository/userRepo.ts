@@ -306,7 +306,7 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
     try {
         // Find the post by ID
         const post = await Post.findById(postId);
-        const userObjectId = new mongoose.Schema.Types.ObjectId(userId);
+        const userObjectId = new mongoose.Types.ObjectId(userId);
         if (!post) {
             return { success: false, message: 'Post not found' };
         }

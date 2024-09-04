@@ -547,7 +547,7 @@ public async updateUserField(
 
       public async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
-            console.log('folow data are,',postId,)
+            console.log('folow data are,',postId,userId)
           const response = await this.userRepository.likepost(postId,userId);
           console.log(response)
       

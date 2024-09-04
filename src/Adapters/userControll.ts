@@ -447,16 +447,13 @@ export async function likeUserControll(req: Request, res: Response): Promise<voi
 
         console.log('Query params:', { postId, userId });
 
-        // Validate postId and userId
         if (typeof postId !== 'string' || typeof userId !== 'string') {
             res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
             return;
         }
 
-        // Convert postId and userId to ObjectId
         const postObjectId = new mongoose.Types.ObjectId(postId);
 
-        // Call the use case to like the post
         const result = await userUseCase.likepost(postObjectId, userId);
 
             console.log('Like post result:', result);

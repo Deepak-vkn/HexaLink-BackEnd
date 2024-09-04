@@ -2,13 +2,13 @@ import mongoose, { ObjectId } from 'mongoose';
 
 // Updated Comment interface to include `message` and `time`
 export interface Comment {
-    userId: ObjectId;
+    userId: mongoose.Types.ObjectId;
     message: string;  // Updated field from `comment` to `message`
     time: Date;
 }
 
 export interface Like {
-    userId: ObjectId;
+    userId: mongoose.Types.ObjectId;
     time: Date;
 }
 
