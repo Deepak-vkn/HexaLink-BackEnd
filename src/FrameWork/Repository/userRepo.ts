@@ -77,15 +77,29 @@ export class UserRepository implements IUserRepository {
             return null;
         }
     }
-
     async getUserPosts(userId: mongoose.Types.ObjectId): Promise<PostDocument[] | null> {
         try {
-            return await Post.find({ userId }).exec();
+            return await Post.find({ userId })
+                .populate({
+                    path: 'userId', // Populate the userId field in the Post schema
+                    select: 'name image', // Select the name and image fields from the User schema
+                })
+                .populate({
+                    path: 'comments.userId', // Populate the userId field in the comments array
+                    select: 'name image', // Select the name and image fields from the User schema
+                })
+                .populate({
+                    path: 'likes.userId', // Populate the userId field in the likes array
+                    select: 'name image', // Select the name and image fields from the User schema
+                })
+                .exec();
         } catch (error) {
-            console.error('Error fetching token by userId:', error);
+            console.error('Error fetching posts by userId:', error);
             return null;
         }
     }
+    
+
     async fetchJobsRepository(): Promise<JobDocument[] | null> {
      
         const currentDate = new Date();
@@ -302,10 +316,10 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
     }
 }
     
-    async   likepost(postId: mongoose.Types.ObjectId, userId: string): Promise<{ success: boolean; message: string; postDoc?: PostDocument }> {
+    async   likepost(postId: mongoose.Types.ObjectId, userId: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
         // Find the post by ID
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId)
         const userObjectId = new mongoose.Types.ObjectId(userId);
         if (!post) {
             return { success: false, message: 'Post not found' };
@@ -320,12 +334,41 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
             // If the user has already liked the post, remove the like
             post.likes.splice(existingLikeIndex, 1);
             await post.save();
-            return { success: true, message: 'Like removed successfully', postDoc: post };
+
+            const populatedPost = await Post.findById(postId )
+            .populate({
+                path: 'userId', // Populate the userId field in the Post schema
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .populate({
+                path: 'comments.userId', // Populate the userId field in the comments array
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .populate({
+                path: 'likes.userId', // Populate the userId field in the likes array
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .exec();
+            return { success: true, message: 'Like removed successfully', postDoc: populatedPost };
         } else {
             // If the user hasn't liked the post yet, add the user's ID and the current timestamp to the likes array
             post.likes.push({ userId:userObjectId, time: new Date() });
             await post.save();
-            return { success: true, message: 'Post liked successfully', postDoc: post };
+            const populatedPost = await Post.findById(postId )
+            .populate({
+                path: 'userId', // Populate the userId field in the Post schema
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .populate({
+                path: 'comments.userId', // Populate the userId field in the comments array
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .populate({
+                path: 'likes.userId', // Populate the userId field in the likes array
+                select: 'name image', // Select the name and image fields from the User schema
+            })
+            .exec();
+            return { success: true, message: 'Post liked successfully', postDoc: populatedPost };
         }
     } catch (error) {
         console.error('Error in likepost function:', error);
@@ -333,7 +376,7 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
     }
 }
      
-    async  updatePost(postId: mongoose.Types.ObjectId, caption: string): Promise<{ success: boolean; message: string; postDoc?: PostDocument }> {
+    async  updatePost(postId: mongoose.Types.ObjectId, caption: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
       // Update the post by ID
       const updatedPost = await Post.findByIdAndUpdate(
@@ -349,11 +392,26 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
           message: 'Post not found',
         };
       }
+
+      const populatedPost = await Post.findById(postId )
+      .populate({
+          path: 'userId', // Populate the userId field in the Post schema
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .populate({
+          path: 'comments.userId', // Populate the userId field in the comments array
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .populate({
+          path: 'likes.userId', // Populate the userId field in the likes array
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .exec();
   
       return {
         success: true,
         message: 'Post updated successfully',
-        postDoc: updatedPost,
+        postDoc: populatedPost,
       };
     } catch (error) {
       console.error('Error updating post:', error);
@@ -390,6 +448,61 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
       };
     }
   }
- 
+  async  addComment(postId: mongoose.Types.ObjectId, userId: string, message: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
+    try {
+        // Find the post by ID
+        const post = await Post.findById(postId);
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        if (!post) {
+            return { success: false, message: 'Post not found' };
+        }
+        // Add the new comment to the comments array
+        post.comments.push({ userId: userObjectId, message, time: new Date() });
+        // Save the updated post
+        await post.save();
+
+        const populatedPost = await Post.findById(postId )
+      .populate({
+          path: 'userId', // Populate the userId field in the Post schema
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .populate({
+          path: 'comments.userId', // Populate the userId field in the comments array
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .populate({
+          path: 'likes.userId', // Populate the userId field in the likes array
+          select: 'name image', // Select the name and image fields from the User schema
+      })
+      .exec();
   
+        return { success: true, message: 'Comment added successfully', postDoc: populatedPost };
+    } catch (error) {
+        console.error('Error in addComment function:', error);
+        return { success: false, message: 'An error occurred while adding the comment' };
+    }
+}
+public async fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<PostDocument[]> {
+    try {
+        return await Post.find({ userId: { $in: userIds } })
+        .sort({ postAt: -1 })
+            .populate({
+                path: 'userId',
+                select: 'name image',
+            })
+            .populate({
+                path: 'comments.userId',
+                select: 'name image',
+            })
+            .populate({
+                path: 'likes.userId',
+                select: 'name image',
+            })
+            .exec();
+    } catch (error) {
+        console.error('Error in fetching posts by user IDs:', error);
+        return [];
+    }
+}
+
 }

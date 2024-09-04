@@ -247,7 +247,7 @@ export async function userPostControll(req: Request, res: Response) {
 }
 
 export async function getUserPostsControll(req:Request,res:Response): Promise<any>{
-  
+
     try {
         const userId = req.params.userId;
         
@@ -489,6 +489,38 @@ export async function deletePostUserControll(req: Request, res: Response): Promi
         const postObjectId = new mongoose.Types.ObjectId(postId);
         console.log('postId  is', postId)
         const result=await userUseCase.deletePost(postObjectId)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function addCommentUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { postId,userId,comment} = req.body; 
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        console.log('postId and Caption is',postId,userId,comment)
+        const result=await userUseCase.addComment(postObjectId,userId,comment)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function fetchFollowingPosts(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId} = req.query; 
+
+        if (typeof userId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(userId);
+        
+        const result=await userUseCase.fetchFollowingPosts(postObjectId)
+        console.log(result)
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);

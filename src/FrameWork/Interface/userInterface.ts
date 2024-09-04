@@ -38,5 +38,7 @@ export interface IUserRepository {
     likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string ,postDoc?: PostDocument }> 
     updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }>
     deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }>
+    addComment(postId: mongoose.Types.ObjectId,userId:string,comment:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }>
+    fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<PostDocument[]>
   
 }

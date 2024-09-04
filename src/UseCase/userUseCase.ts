@@ -586,6 +586,45 @@ public async updateUserField(
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
+      public async addComment(postId: mongoose.Types.ObjectId,userId:string,comment:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+        try {
+            console.log('update post data are,',postId,userId,comment)
+          const response = await this.userRepository.addComment(postId,userId,comment);
+          console.log(response)
+      
+          // Return the response directly or modify it as needed
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
 
+      public async fetchFollowingPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; postDoc?: PostDocument[] }> {
+        try {
+            const followDoc = await this.userRepository.fetchFollow(userId);
+            if (!followDoc) {
+                throw new Error('No follow document found for the user.');
+            }
+    
+            // Convert followStatus.id to string if it's not already
+            const approvedFollowingUserIds = followDoc.following
+                .filter(followStatus => followStatus.status === 'approved')
+                .map(followStatus => new mongoose.Types.ObjectId(followStatus.id.toString()));
+    
+            if (approvedFollowingUserIds.length > 0) {
+                const posts = await this.userRepository.fetchPostsByUserIds(approvedFollowingUserIds);
+                return { success: true, message: 'Posts fetched successfully', postDoc: posts };
+            } else {
+                return { success: true, message: 'No posts available for the approved following users' };
+            }
+        } catch (error) {
+            console.error('Error in fetching following posts service method:', error);
+            return { success: false, message: 'An error occurred while fetching the following posts' };
+        }
+    }
+    
+    
       
     }

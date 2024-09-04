@@ -2,23 +2,18 @@ import express from 'express';
 import multer from 'multer';
 import jwtVerifyUser from '../utilits/jwtVerifyUser'
 import { 
-    registerUserController,
-    verifyOtpUserController,  
-    loginUserController,     
-    resendOtpUserController, 
-    logout,
-    forgetPasswordUserController,
-    resetPasswordUserController,
-    fetchtimerUserController,
-    blockUserUserController,
-    updateUserController,
-    userPostControll,
-    getUserPostsControll,
-    fetchJobsController,
-    applyJobController,
-    updateEducationController,
-    searchUsersControll,
-    fetchFllowControll,followUserControll,fetchNotificationControll,fetchUserControll,unFollowUserControll,likeUserControll,updatePostUserControll,deletePostUserControll
+    registerUserController,verifyOtpUserController,  
+    loginUserController,resendOtpUserController, 
+    logout,forgetPasswordUserController,
+    resetPasswordUserController,fetchtimerUserController,
+    blockUserUserController,updateUserController,
+    userPostControll,getUserPostsControll,
+    fetchJobsController,applyJobController,
+    updateEducationController,searchUsersControll,
+    fetchFllowControll,followUserControll,fetchNotificationControll,
+    fetchUserControll,unFollowUserControll,likeUserControll,
+    updatePostUserControll,deletePostUserControll,
+    addCommentUserControll,fetchFollowingPosts
 
 } from '../../Adapters/userControll'; 
 
@@ -56,6 +51,6 @@ router.post('/unFollowUser', unFollowUserControll);
 router.get('/likepost', likeUserControll);
 router.post('/updatePost', updatePostUserControll);
 router.get('/deletePost', deletePostUserControll);
-
-
+router.post('/postComment', addCommentUserControll);
+router.get('/fetchFollowingPosts', fetchFollowingPosts)
 export default router;
