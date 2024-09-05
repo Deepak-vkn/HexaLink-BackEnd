@@ -4,6 +4,7 @@ import { OtpDocument } from '../FrameWork/Databse/otpSchema';
 import { ICompanyRepository } from '../FrameWork/Interface/companyInterface';
 import Token, { TokenDocument } from '../FrameWork/Databse/tokenSchema';
 import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
+import { ApplicationDocument } from '../FrameWork/Databse/applicationSchema';
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 
@@ -305,6 +306,47 @@ public async updateJobService(jobId: string, jobData: Partial<JobDocument>): Pro
     };
   }
 }
+
+
+public async fetchCompanyApplicationsUseCase(companyId: mongoose.Types.ObjectId): Promise<{success: boolean;message: string;applications?: ApplicationDocument[]}> {
+  try {
+    const applications = await this.companyRepo.fetchCompanyApplications(companyId);
+
+    if (!applications || applications.length === 0) {
+      return {
+        success: false,
+        message: 'No applications found for the given company',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Applications fetched successfully',
+      applications: applications, // Include the applications in the response
+    };
+  } catch (error) {
+    console.error('Error in fetchCompanyApplicationsUseCase:', error);
+    return {
+      success: false,
+      message: 'An error occurred while fetching the applications',
+    };
+  }
+}
+public async updateApplicationStatusUseCase(applicationId: mongoose.Types.ObjectId, status:string): Promise<any> {
+
+  try {
+    console.log('usecse',applicationId, status)
+    const updatedJob = await this.companyRepo.updateApplicationStatus(applicationId, status);
+ return updatedJob
+  } catch (error) {
+    console.error('Error in updateJobService:', error);
+    return {
+      success: false,
+      message: 'An error occurred while updating the job',
+    };
+  }
+}
+
 
 }
 

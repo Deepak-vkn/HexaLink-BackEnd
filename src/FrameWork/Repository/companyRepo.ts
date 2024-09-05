@@ -3,7 +3,7 @@ import Company, { CompanyDocument } from '../Databse/companySchema';
 import Otp, { OtpDocument } from '../Databse/otpSchema';
 import { ICompanyRepository } from '../Interface/companyInterface'; 
 import Job,{ JobDocument } from '../Databse/jobSchema';
-
+import Application,{ ApplicationDocument } from  '../Databse/applicationSchema'
 export class CompanyRepository implements ICompanyRepository {
     
     async createCompany(companyData: Partial<CompanyDocument>): Promise<CompanyDocument> {
@@ -111,5 +111,71 @@ export class CompanyRepository implements ICompanyRepository {
           throw new Error('Error updating job in repository');
         }
       }
-    
-}
+
+      async  fetchCompanyApplications(companyId: mongoose.Types.ObjectId): Promise<ApplicationDocument[]> {
+        try {
+          const applications = await Application.aggregate([
+            {
+              $lookup: {
+                from: 'jobs',
+                localField: 'jobId',
+                foreignField: '_id',
+                as: 'jobDetails',
+              },
+            },
+            {
+              $unwind: '$jobDetails',
+            },
+            {
+              $match: {
+                'jobDetails.companyId': companyId,
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                resume: 1,
+                appliedDate: 1,
+                experience: 1,
+                status: 1,
+                jobId: '$jobDetails._id',
+                'jobDetails.title': 1,
+              },
+            },
+          ]);
+          return applications;
+        } catch (err) {
+          console.error('Error fetching applications:', err);
+          throw err;
+        }
+      }
+       async  updateApplicationStatus(
+        applicationId: mongoose.Types.ObjectId,
+        status: string
+      ): Promise<{ success: boolean; message: string }> {
+        try {
+          // Ensure the status is valid
+          const validStatuses = ['Pending', 'Reviewed', 'Rejected', 'Shortlisted'];
+          if (!validStatuses.includes(status)) {
+            return { success: false, message: 'Invalid status' };
+          }
+          // Find the application by jobID and update its status
+          const application = await Application.findOneAndUpdate(
+            { _id: applicationId },
+            { status: status },
+            { new: true }
+          );
+          if (!application) {
+            return { success: false, message: 'Application not found' };
+          }
+          console.log('Updated application:', application);
+          return { success: true, message: 'Application status updated successfully' };
+        } catch (error) {
+          console.error('Error updating application status:', error);
+          return { success: false, message: 'Failed to update application status' };
+        }
+      }
+    }
+      

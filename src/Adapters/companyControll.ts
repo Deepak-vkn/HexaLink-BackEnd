@@ -211,6 +211,7 @@ export async function fetchJobsController(req: Request, res: Response): Promise<
     try {
         // Pass both companyId and sortBy to the use case function
         const result = await companyUseCase.fetchJobs(companyId, sortBy);
+        console.log(result)
         res.json(result);
     } catch (error) {
         console.error('Error in fetching jobs:', error);
@@ -252,3 +253,40 @@ export async function updateJobController(req: Request, res: Response): Promise<
       });
     }
   }
+
+  export async function fetchCompanyApplicationsUseCase(req: Request, res: Response): Promise<void> {
+    let { companyId } = req.query; // Extract sortBy from the request body
+
+    try {
+        if (typeof companyId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(companyId);
+        const result = await companyUseCase.fetchCompanyApplicationsUseCase(postObjectId);
+   console.log(result)
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}
+
+export async function updateApplicationStatusUserControll(req: Request, res: Response): Promise<void> {
+    let { applicationId, status } = req.query; 
+    console.log('raeched in backend',applicationId, status)
+
+    try {
+        if (typeof applicationId !== 'string' || typeof status !== 'string') {
+            res.json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(applicationId);
+        const result = await companyUseCase.updateApplicationStatusUseCase(postObjectId, status);
+      
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}
