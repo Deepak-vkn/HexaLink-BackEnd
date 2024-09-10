@@ -18,7 +18,6 @@ const UserSchema: Schema = new Schema({
   is_verified: { type: Boolean, required: true, default: false },
   is_block: { type: Boolean, required: true, default: false },
 
-
   jobs: [{ type: Schema.Types.ObjectId, ref: 'Job', default: [] }],
   workStatus: { type: String, default: '' },
   about: { type: String, default: '' },

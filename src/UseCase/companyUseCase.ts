@@ -322,7 +322,7 @@ public async fetchCompanyApplicationsUseCase(companyId: mongoose.Types.ObjectId)
     return {
       success: true,
       message: 'Applications fetched successfully',
-      applications: applications, // Include the applications in the response
+      applications: applications, 
     };
   } catch (error) {
     console.error('Error in fetchCompanyApplicationsUseCase:', error);
@@ -332,7 +332,7 @@ public async fetchCompanyApplicationsUseCase(companyId: mongoose.Types.ObjectId)
     };
   }
 }
-public async updateApplicationStatusUseCase(applicationId: mongoose.Types.ObjectId, status:string): Promise<any> {
+ async updateApplicationStatusUseCase(applicationId: mongoose.Types.ObjectId, status:string): Promise<any> {
 
   try {
     console.log('usecse',applicationId, status)

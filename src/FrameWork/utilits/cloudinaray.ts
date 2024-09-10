@@ -7,7 +7,7 @@ async function uploadCloudinary(filePath: string) {
         api_key: process.env.API_KEY,
         api_secret: process.env.API_SECRET
     });
-    
+
     try {
         const result = await cloudinary.uploader.upload(filePath, {
             folder: 'HexaLink',

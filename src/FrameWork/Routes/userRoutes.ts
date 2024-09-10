@@ -34,23 +34,24 @@ router.post('/resendOtp', resendOtpUserController);
 router.post('/logout', logout);
 router.post('/forgetPassword', forgetPasswordUserController);
 router.post('/resetPassword', resetPasswordUserController);
-router.post('/fetchtimer',fetchtimerUserController)
-router.post('/block',blockUserUserController)
-router.post('/update',upload.single('file'),updateUserController)
-router.post('/userpost',upload.single('file'),userPostControll)
-router.get('/userposts/:userId', getUserPostsControll);
+router.post('/fetchtimer',fetchtimerUserController);
+router.post('/block',blockUserUserController);
+router.post('/update',jwtVerifyUser,upload.single('file'),updateUserController);
+router.post('/userpost',jwtVerifyUser,upload.array('images', 4),userPostControll);
+router.get('/userposts/:userId',jwtVerifyUser, getUserPostsControll);
 router.get('/fetchJobs',fetchJobsController)
-router.post('/applyJob',upload.single('file'),applyJobController)
-router.post('/updateEducation',updateEducationController)
-router.post('/search',searchUsersControll)
-router.get('/fetchFollow', fetchFllowControll);
-router.post('/followUser', followUserControll);
-router.get('/fetchNotification',fetchNotificationControll)
-router.get('/fetchUser', fetchUserControll);
-router.post('/unFollowUser', unFollowUserControll);
-router.get('/likepost', likeUserControll);
-router.post('/updatePost', updatePostUserControll);
-router.get('/deletePost', deletePostUserControll);
-router.post('/postComment', addCommentUserControll);
-router.get('/fetchFollowingPosts', fetchFollowingPosts)
+router.post('/applyJob',jwtVerifyUser,upload.single('file'),applyJobController)
+router.post('/updateEducation',jwtVerifyUser,updateEducationController)
+router.post('/search',jwtVerifyUser,searchUsersControll)
+router.get('/fetchFollow',jwtVerifyUser, fetchFllowControll);
+router.post('/followUser',jwtVerifyUser, followUserControll);
+router.get('/fetchNotification',jwtVerifyUser,fetchNotificationControll)
+router.get('/fetchUser',jwtVerifyUser, fetchUserControll);
+router.post('/unFollowUser',jwtVerifyUser, unFollowUserControll);
+router.get('/likepost',jwtVerifyUser, likeUserControll);
+router.post('/updatePost',jwtVerifyUser, updatePostUserControll);
+router.get('/deletePost',jwtVerifyUser, deletePostUserControll);
+router.post('/postComment',jwtVerifyUser, addCommentUserControll);
+router.get('/fetchFollowingPosts',jwtVerifyUser, fetchFollowingPosts)
+router.get('/verify-token',jwtVerifyUser)
 export default router;

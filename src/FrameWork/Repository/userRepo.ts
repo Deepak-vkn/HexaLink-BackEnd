@@ -66,10 +66,10 @@ export class UserRepository implements IUserRepository {
         }
     }
 
-    async createPostRepo(image: string, caption: string, userId: mongoose.Types.ObjectId): Promise<PostDocument| null> {
+    async createPostRepo(images: string[], caption: string, userId: mongoose.Types.ObjectId): Promise<PostDocument| null> {
         try {
            
-            const post = new Post({ image, caption, userId });
+            const post = new Post({ images, caption, userId });
             const savedPost = await post.save();
             return savedPost;
         } catch (error) {
@@ -81,16 +81,16 @@ export class UserRepository implements IUserRepository {
         try {
             return await Post.find({ userId })
                 .populate({
-                    path: 'userId', // Populate the userId field in the Post schema
-                    select: 'name image', // Select the name and image fields from the User schema
+                    path: 'userId', 
+                    select: 'name image', 
                 })
                 .populate({
-                    path: 'comments.userId', // Populate the userId field in the comments array
-                    select: 'name image', // Select the name and image fields from the User schema
+                    path: 'comments.userId', 
+                    select: 'name image', 
                 })
                 .populate({
-                    path: 'likes.userId', // Populate the userId field in the likes array
-                    select: 'name image', // Select the name and image fields from the User schema
+                    path: 'likes.userId', 
+                    select: 'name image', 
                 })
                 .exec();
         } catch (error) {
@@ -182,7 +182,7 @@ export class UserRepository implements IUserRepository {
             console.error('Error updating application count:', error);
         }
     }
-    public  async searchUsers(query?:string): Promise<UserDocument[]> {
+      async searchUsers(query?:string): Promise<UserDocument[]> {
         let filter: any = { is_block: false }; 
         if (query) {
             filter.name = { $regex: `^${query}`, $options: 'i' }; 
@@ -192,12 +192,21 @@ export class UserRepository implements IUserRepository {
  
          return user
     }
-    public async fetchFollow(userId: mongoose.Types.ObjectId): Promise<FollowDocument | null> {
-        return Follow.findOne({ userId: userId }).exec(); 
+    async  fetchFollow(userId: mongoose.Types.ObjectId): Promise<any | null> {
+        return Follow.findOne({ userId: userId })
+          .populate({
+            path: 'following.id', // Populating the `id` field in `following`
+            select: 'name image', // Selecting only `name` and `image` fields from the User model
+          })
+          .populate({
+            path: 'followers.id', // Populating the `id` field in `followers`
+            select: 'name image', // Selecting only `name` and `image` fields from the User model
+          })
+          .exec();
       }
-    public async  followUser(userId:  mongoose.Types.ObjectId, followId:  mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+     async  followUser(userId:  mongoose.Types.ObjectId, followId:  mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
-          // Find the Follow document for the user
+       
           const userDoc = await Follow.findOne({ userId });
           const followDoc = await Follow.findOne({ userId:followId });
           console.log('user is ',userDoc)
@@ -213,16 +222,16 @@ export class UserRepository implements IUserRepository {
      
           if (existingFollow&& existingFollower) {
             console.log('eneyred existing follow')
-            // If already following, update the status to 'approved'
+         
             existingFollow.status = 'approved';
             existingFollower.status = 'approved';
             await userDoc.save();
             await followDoc.save();
             await Notification.create({
-                userId: followId, // The user who receives the notification
+                userId: followId, 
                 type: 'follow',
-                message: `${userId} accepted your follow request.`,
-                sourceId: userId, // The user who triggered the notification
+                message: ` accepted your follow request.`,
+                sourceId: userId, 
               
                 isRead: false,
                 createdAt: new Date(),
@@ -236,21 +245,21 @@ export class UserRepository implements IUserRepository {
             // If not already following, add the new followId with status 'requested'
             userDoc.following.push({
               id: followId as mongoose.Types.ObjectId ,
-              followTime: new Date(), // Set the follow time to the current date and time
+              followTime: new Date(), 
               status: 'requested'
             } as any);
             followDoc.followers.push({
                 id: userId as mongoose.Types.ObjectId ,
-                followTime: new Date(), // Set the follow time to the current date and time
+                followTime: new Date(), 
                 status: 'requested'
               } as any);
           }
 
           await Notification.create({
-            userId: followId, // The user who receives the notification
+            userId: followId, 
             type: 'follow',
-            message: `${userId} sent you a follow request.`,
-            sourceId: userId, // The user who triggered the notification
+            message: ` sent you a follow request.`,
+            sourceId: userId, 
             isRead: false,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -266,16 +275,19 @@ export class UserRepository implements IUserRepository {
           console.error('Error in followUser function:', error);
           return { success: false, message: 'An error occurred while following the user' };
         }
-}
+     }
 
 
-public async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
-    return Notification.find({ userId: userId }).exec(); 
-}
+    async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
+    return Notification.find({ userId: userId }).populate({
+        path: 'userId',
+        select: 'name image', 
+      }).exec(); 
+    }
 
-public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; followDoc?: FollowDocument; }> {
+    async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; followDoc?: FollowDocument; }> {
     try {
-        // Find the Follow document for both users
+       
         const userDoc = await Follow.findOne({ userId });
         const followDoc = await Follow.findOne({ userId: followId });
 
@@ -314,11 +326,11 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         console.error('Error in unfollowUser function:', error);
         return { success: false, message: 'An error occurred while unfollowing the user' };
     }
-}
+    }
     
     async   likepost(postId: mongoose.Types.ObjectId, userId: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
-        // Find the post by ID
+      
         const post = await Post.findById(postId)
         const userObjectId = new mongoose.Types.ObjectId(userId);
         if (!post) {
@@ -337,16 +349,16 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
 
             const populatedPost = await Post.findById(postId )
             .populate({
-                path: 'userId', // Populate the userId field in the Post schema
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'userId', 
+                select: 'name image', 
             })
             .populate({
-                path: 'comments.userId', // Populate the userId field in the comments array
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'comments.userId', 
+                select: 'name image', 
             })
             .populate({
-                path: 'likes.userId', // Populate the userId field in the likes array
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'likes.userId',
+                select: 'name image', 
             })
             .exec();
             return { success: true, message: 'Like removed successfully', postDoc: populatedPost };
@@ -356,16 +368,16 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
             await post.save();
             const populatedPost = await Post.findById(postId )
             .populate({
-                path: 'userId', // Populate the userId field in the Post schema
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'userId', 
+                select: 'name image', 
             })
             .populate({
-                path: 'comments.userId', // Populate the userId field in the comments array
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'comments.userId', 
+                select: 'name image', 
             })
             .populate({
-                path: 'likes.userId', // Populate the userId field in the likes array
-                select: 'name image', // Select the name and image fields from the User schema
+                path: 'likes.userId', 
+                select: 'name image', 
             })
             .exec();
             return { success: true, message: 'Post liked successfully', postDoc: populatedPost };
@@ -374,18 +386,18 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         console.error('Error in likepost function:', error);
         return { success: false, message: 'An error occurred while processing the like' };
     }
-}
+    }
      
     async  updatePost(postId: mongoose.Types.ObjectId, caption: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
-      // Update the post by ID
+
       const updatedPost = await Post.findByIdAndUpdate(
         postId, 
-        { caption: caption },  // Update the caption field
-        { new: true, runValidators: true } // Return the updated document and run validators
+        { caption: caption },  
+        { new: true, runValidators: true } 
       ).exec();
   
-      // Check if the post was updated
+ 
       if (!updatedPost) {
         return {
           success: false,
@@ -395,16 +407,16 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
 
       const populatedPost = await Post.findById(postId )
       .populate({
-          path: 'userId', // Populate the userId field in the Post schema
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'userId', 
+          select: 'name image', 
       })
       .populate({
-          path: 'comments.userId', // Populate the userId field in the comments array
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'comments.userId', 
+          select: 'name image', 
       })
       .populate({
-          path: 'likes.userId', // Populate the userId field in the likes array
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'likes.userId', 
+          select: 'name image',
       })
       .exec();
   
@@ -420,14 +432,13 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         message: 'Error updating post',
       };
     }
-  }
+     }
 
   async  deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string;  }> {
     try {
-      // Find by ID and delete the post
+     
       const deletedPost = await Post.findByIdAndDelete(postId).exec();
   
-      // Check if the post was found and deleted
       if (!deletedPost) {
         return {
           success: false,
@@ -447,10 +458,10 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         message: 'Error deleting post',
       };
     }
-  }
+    }
   async  addComment(postId: mongoose.Types.ObjectId, userId: string, message: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
-        // Find the post by ID
+   
         const post = await Post.findById(postId);
         const userObjectId = new mongoose.Types.ObjectId(userId);
         if (!post) {
@@ -458,21 +469,21 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         }
         // Add the new comment to the comments array
         post.comments.push({ userId: userObjectId, message, time: new Date() });
-        // Save the updated post
+    
         await post.save();
 
         const populatedPost = await Post.findById(postId )
       .populate({
-          path: 'userId', // Populate the userId field in the Post schema
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'userId', 
+          select: 'name image', 
       })
       .populate({
-          path: 'comments.userId', // Populate the userId field in the comments array
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'comments.userId',
+          select: 'name image', 
       })
       .populate({
-          path: 'likes.userId', // Populate the userId field in the likes array
-          select: 'name image', // Select the name and image fields from the User schema
+          path: 'likes.userId', 
+          select: 'name image', 
       })
       .exec();
   
@@ -481,8 +492,8 @@ public async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Ty
         console.error('Error in addComment function:', error);
         return { success: false, message: 'An error occurred while adding the comment' };
     }
-}
-public async fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<PostDocument[]> {
+    }
+  async fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<PostDocument[]> {
     try {
         return await Post.find({ userId: { $in: userIds } })
         .sort({ postAt: -1 })
@@ -503,6 +514,6 @@ public async fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<Po
         console.error('Error in fetching posts by user IDs:', error);
         return [];
     }
-}
+    }
 
 }

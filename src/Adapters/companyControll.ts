@@ -202,14 +202,14 @@ export async function createJobController(req: Request, res: Response): Promise<
 
 
 export async function fetchJobsController(req: Request, res: Response): Promise<void> {
-    let { companyId, sortBy } = req.body; // Extract sortBy from the request body
+    let { companyId, sortBy } = req.body; 
     console.log('Fetching jobs for company:', companyId, 'with sort:', sortBy);
     if (!sortBy) {
         sortBy = 'active';
     }
 
     try {
-        // Pass both companyId and sortBy to the use case function
+      
         const result = await companyUseCase.fetchJobs(companyId, sortBy);
         console.log(result)
         res.json(result);
@@ -255,7 +255,7 @@ export async function updateJobController(req: Request, res: Response): Promise<
   }
 
   export async function fetchCompanyApplicationsUseCase(req: Request, res: Response): Promise<void> {
-    let { companyId } = req.query; // Extract sortBy from the request body
+    let { companyId } = req.query; 
 
     try {
         if (typeof companyId !== 'string' ) {

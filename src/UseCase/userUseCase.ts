@@ -30,7 +30,7 @@ export class UserUseCase {
         });
     }
 
-    public async registerUser(userData: Partial<UserDocument>): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+     async registerUser(userData: Partial<UserDocument>): Promise<{ success: boolean, message: string, user?: UserDocument }> {
         const { email } = userData;
 
         if (!email) {
@@ -51,7 +51,7 @@ export class UserUseCase {
         }
     }
 
-    public async createOtp(userId: mongoose.Types.ObjectId): Promise<OtpDocument> {
+     async createOtp(userId: mongoose.Types.ObjectId): Promise<OtpDocument> {
         const storedOtp = await this.userRepository.findOtpById(userId);
         if (storedOtp) {
             await this.userRepository.deleteOtpById(userId);
@@ -67,7 +67,7 @@ export class UserUseCase {
     }
 
 
-    public async verifyOtp(otp: number, userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string }> {
+     async verifyOtp(otp: number, userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string }> {
         try {
             const otpRecord = await this.userRepository.findOtpById(userId);
     
@@ -94,7 +94,7 @@ export class UserUseCase {
         }
     }
 
-    public async sendEmail(to: string,content: string ,subject:string='No subject'): Promise<void> {
+     async sendEmail(to: string,content: string ,subject:string='No subject'): Promise<void> {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to,
@@ -106,7 +106,7 @@ export class UserUseCase {
     }
 
 
-   public async verifyLogin(email: string, password: string): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+    async verifyLogin(email: string, password: string): Promise<{ success: boolean, message: string, user?: UserDocument }> {
     try {
         const user = await this.userRepository.findUserByEmail(email);
 
@@ -142,7 +142,7 @@ export class UserUseCase {
     }
 }
 
-    public async generateResetToken(userId: string): Promise<string> {
+     async generateResetToken(userId: string): Promise<string> {
         const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '30s' });
         const expireAt = new Date();
       expireAt.setHours(expireAt.getHours() + 30);
@@ -151,7 +151,7 @@ export class UserUseCase {
         return resetToken;
     }
 
-    public async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
+     async verifyToken(token: string): Promise<{ success: boolean, message?: string, tokenRecord?: any } | null> {
         try {
           
             const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
@@ -184,7 +184,7 @@ export class UserUseCase {
         }
     }
 
-    public async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string): Promise<{ success: boolean, message: string }> {
+     async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string): Promise<{ success: boolean, message: string }> {
         try {
             const user = await this.userRepository.findUserById(userId);
 
@@ -201,11 +201,11 @@ export class UserUseCase {
         }
     }
 
-    public async getUser(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+     async getUser(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
         console.log('usecase is ',userId)
         return await this.userRepository.findUserById(userId);
     }
-    public async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
+     async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
         try {
             
             const otp = await Otp.findOne({ userId }).exec();
@@ -225,7 +225,7 @@ export class UserUseCase {
             return { success: false, message: 'An error occurred while fetching OTP' };
         }
     }
-    public async blockUser(userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}>{
+     async blockUser(userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}>{
        
         const user=await this.userRepository.getUserById(userId)
     
@@ -248,7 +248,7 @@ export class UserUseCase {
             return { success: false, message: 'failed to  block user ' };
         }
     }
-    public async updateUser(updateData: any): Promise<{ success: boolean, message: string, user?: UserDocument }> {
+     async updateUser(updateData: any): Promise<{ success: boolean, message: string, user?: UserDocument }> {
 
         try {
             const existingUser = await this.userRepository.getUserById(updateData.userId);
@@ -277,7 +277,7 @@ export class UserUseCase {
                             ];
                         }
                     } else if (key === 'skills' && Array.isArray(updateData.user[key])) {
-                        // Merge new skills with existing ones
+                     
                         const updatedSkills = new Set([
                             ...(existingUser.skill || []),
                             ...updateData.user[key]
@@ -297,21 +297,17 @@ export class UserUseCase {
         }
     }
     
-    
-    
 
-    public async createPost(file: string, caption: string, userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}> {
+
+     async createPost(imageUrls: string[], caption: string, userId: mongoose.Types.ObjectId):Promise<{ success: boolean, message: string,block?:boolean}> {
         try {
             const user = await this.userRepository.findUserById(userId);
             if (!user) {
                 return { success: false, message: 'User not found' };
             }
-            let imageUrl: string  = '';
-            if (file) {
-                imageUrl = await uploadCloudinary(file);
-            }
+        
     
-            const result = await this.userRepository.createPostRepo(imageUrl, caption, userId);
+            const result = await this.userRepository.createPostRepo(imageUrls, caption, userId);
             if (!result) {
                 return { success: false, message: 'Failed to post' };
             }
@@ -322,7 +318,7 @@ export class UserUseCase {
             throw new Error('Failed to create post');
         }
     }
-    public async getPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string, posts?: PostDocument[] }> {
+     async getPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, message: string, posts?: PostDocument[] }> {
         try {
             
             const posts = await this.userRepository.getUserPosts(userId);
@@ -348,7 +344,7 @@ export class UserUseCase {
             };
         }
     }
-    public async fetchJobs(): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
+     async fetchJobs(): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
         try {
             const jobs = await this.userRepository.fetchJobsRepository();
       
@@ -365,7 +361,7 @@ export class UserUseCase {
 
 
 
- public async applyForJob(applicationData: { 
+  async applyForJob(applicationData: { 
     userId: string; 
     jobId: string; 
     name: string; 
@@ -432,7 +428,7 @@ export class UserUseCase {
 }
 
 
-public async updateUserField(
+   async updateUserField(
     userId: string,
     index: number,
     field: 'education' | 'skill'
@@ -470,10 +466,11 @@ public async updateUserField(
     return users
     }
 
-    public async fetchFllowUsecase(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; follow: FollowDocument | null }> {
+     async fetchFllowUsecase(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; follow: FollowDocument | null }> {
         try {
           const follow = await this.userRepository.fetchFollow(userId);
           if (follow) {
+            console.log(follow)
             return { success: true, follow };
           }
 
@@ -481,17 +478,17 @@ public async updateUserField(
         } catch (error) {
           console.error('Error fetching follow document:', error);
       
-          // In case of error, return success: false with follow as null
+    
           return { success: false, follow: null };
         }
       }
-      public async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+       async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
             console.log('folow data are,',userId, followId)
           const response = await this.userRepository.followUser(userId, followId);
           console.log(response)
       
-          // Return the response directly or modify it as needed
+        
           return response;
       
         } catch (error) {
@@ -500,22 +497,22 @@ public async updateUserField(
         }
       }
 
-      public async fetchNotification(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; data?: NotificationDocument[] }> {
+       async fetchNotification(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; data?: NotificationDocument[] }> {
         try {
             console.log('Notification data for user:', userId);
             
-            // Fetch the notifications using the userId
+
             const notifications = await this.userRepository.fetchNotifications(userId);
     
             if (notifications.length > 0) {
-                // Return success if notifications are found
+     
                 return {
                     success: true,
                     message: 'Notifications retrieved successfully',
                     data: notifications
                 };
             } else {
-                // Handle case where no notifications are found
+       
                 return {
                     success: true,
                     message: 'No notifications found',
@@ -530,13 +527,13 @@ public async updateUserField(
             };
         }
     }
-    public async unFollowUser(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+     async unFollowUser(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
             console.log('folow data are,',userId, unfollowId)
           const response = await this.userRepository.unfollowUser(userId, unfollowId);
           console.log(response)
       
-          // Return the response directly or modify it as needed
+    
           return response;
       
         } catch (error) {
@@ -545,13 +542,13 @@ public async updateUserField(
         }
       }
 
-      public async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+       async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
             console.log('folow data are,',postId,userId)
           const response = await this.userRepository.likepost(postId,userId);
           console.log(response)
       
-          // Return the response directly or modify it as needed
+
           return response;
       
         } catch (error) {
@@ -559,13 +556,13 @@ public async updateUserField(
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
-      public async updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+       async updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
             console.log('update post data are,',postId,caption)
           const response = await this.userRepository.updatePost(postId,caption);
           console.log(response)
       
-          // Return the response directly or modify it as needed
+
           return response;
       
         } catch (error) {
@@ -586,13 +583,13 @@ public async updateUserField(
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
-      public async addComment(postId: mongoose.Types.ObjectId,userId:string,comment:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
+       async addComment(postId: mongoose.Types.ObjectId,userId:string,comment:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
             console.log('update post data are,',postId,userId,comment)
           const response = await this.userRepository.addComment(postId,userId,comment);
           console.log(response)
       
-          // Return the response directly or modify it as needed
+
           return response;
       
         } catch (error) {
@@ -601,18 +598,18 @@ public async updateUserField(
         }
       }
 
-      public async fetchFollowingPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; postDoc?: PostDocument[] }> {
+       async fetchFollowingPosts(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; postDoc?: PostDocument[] }> {
         try {
             const followDoc = await this.userRepository.fetchFollow(userId);
             if (!followDoc) {
                 throw new Error('No follow document found for the user.');
             }
     
-            // Convert followStatus.id to string if it's not already
+       
             const approvedFollowingUserIds = followDoc.following
-                .filter(followStatus => followStatus.status === 'approved')
-                .map(followStatus => new mongoose.Types.ObjectId(followStatus.id.toString()));
-    
+            .filter((followStatus: any) => followStatus.status === 'approved')
+            .map((followStatus: any) => new mongoose.Types.ObjectId(followStatus.id._id.toString()));
+          
             if (approvedFollowingUserIds.length > 0) {
                 const posts = await this.userRepository.fetchPostsByUserIds(approvedFollowingUserIds);
                 return { success: true, message: 'Posts fetched successfully', postDoc: posts };

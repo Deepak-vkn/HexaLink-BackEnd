@@ -17,7 +17,7 @@ export interface Posts {
     userId: ObjectId;
     comments: Comment[];  // Updated Comment structure
     likes: Like[];        // Updated Likes structure
-    image: string | null;
+    images: string[];     // Changed from `image` (string | null) to `images` array
     caption: string | null;
     postAt: Date | null;
 }

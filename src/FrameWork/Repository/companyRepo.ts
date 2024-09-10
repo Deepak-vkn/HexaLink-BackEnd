@@ -156,12 +156,12 @@ export class CompanyRepository implements ICompanyRepository {
         status: string
       ): Promise<{ success: boolean; message: string }> {
         try {
-          // Ensure the status is valid
+          
           const validStatuses = ['Pending', 'Reviewed', 'Rejected', 'Shortlisted'];
           if (!validStatuses.includes(status)) {
             return { success: false, message: 'Invalid status' };
           }
-          // Find the application by jobID and update its status
+         
           const application = await Application.findOneAndUpdate(
             { _id: applicationId },
             { status: status },

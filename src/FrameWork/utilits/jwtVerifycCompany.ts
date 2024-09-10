@@ -1,36 +1,45 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import Company from '../../FrameWork/Databse/userSchema';
+import Company from '../../FrameWork/Databse/companySchema'; // Import Company Schema
 
 interface DecodedToken extends JwtPayload {
     userId: string;
 }
 
-const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    let token: string | undefined = req.cookies?.company;
+const protectCompany = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    console.log('Company Token Validation Middleware');
 
-    console.log(token);
+    // Access the token from the cookies
+    let token: string | undefined = req.cookies?.company;
 
     if (token) {
         try {
+            // Decode the token using the secret key
             const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as DecodedToken;
 
-            const user = await Company.findById(decoded.userId)
-
-            if (user) {
-                console.log("TOKEN FOUND IN MIDDLEWARE");
-                next();
-            } else {
-                res.status(401).json({ token: false, message: "User not found",role:'company' });
+            // Find the company by the decoded userId
+            const company = await Company.findById(decoded.userId);
+            if (company) {
+                console.log("Valid company token found in middleware");
+                // If the route is `/verify-token`, return the response
+                if (req.path === '/verify-token') {
+                    res.status(200).json({ token: true, message: "Token is valid" });
+                    return;
+                }
+                next(); // Proceed to the next middleware if token is valid
+            } 
+            else {
+                console.log('Company not found, invalid token');
+                res.json({ token: false, message: "Company not found", role: 'company' });
             }
         } catch (error) {
             console.error('Token verification failed:', error);
-            res.status(401).json({ token: false, message: "Unauthorized" });
+            res.json({ token: false, message: "Unauthorized" ,role: 'company'});
         }
     } else {
         console.log("Token not found in middleware");
-        res.status(401).json({ token: false, message: "Unauthorized" });
+        res.json({ token: false, message: "Unauthorized" ,role: 'company'});
     }
 }
 
-export default protect;
+export default protectCompany;

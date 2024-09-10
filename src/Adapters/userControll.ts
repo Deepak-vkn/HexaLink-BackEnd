@@ -4,7 +4,8 @@ import { UserUseCase } from '../UseCase/userUseCase';
 import { IUserRepository } from '../FrameWork/Interface/userInterface';
 import { UserRepository } from '../FrameWork/Repository/userRepo';
 import generateToken  from '../FrameWork/utilits/userJwt';
-
+import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
+import fs from 'fs';
 // Initialize UserRepository and UserUseCase
 const userRepository: IUserRepository = new UserRepository();
 const userUseCase = new UserUseCase(userRepository);
@@ -224,27 +225,54 @@ export async function updateUserController (req:Request,res:Response) :Promise<v
         res.status(500).json({ message: 'Internal Server Error' });
     }
 }
-
-
 export async function userPostControll(req: Request, res: Response) {
     try {
-        const { file, caption, userId } = req.body;
-        console.log('raecjed adapter')
+        const { caption, userId, images } = req.body;
+        console.log('Received images:', images);
 
-        if (!file || !caption || !userId) {
+        // Check if all required fields are present
+        if (!caption || !userId) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        const userIdObj = new mongoose.Types.ObjectId(userId);
+        // Normalize images into an array
+        let imageArray: string[] = [];
+        if (Array.isArray(images)) {
+            // If images is already an array, use it directly
+            imageArray = images;
+        } else if (typeof images === 'string') {
+            // If images is a single string, convert it into an array
+            imageArray = [images];
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid images format' });
+        }
 
-       
-        const result = await userUseCase.createPost(file, caption, userIdObj);
+        const userIdObj = new mongoose.Types.ObjectId(userId);
+        const imageUrls: string[] = [];
+
+        // Process each image (upload base64 to Cloudinary)
+        for (const base64Image of imageArray) {
+            try {
+                // Assuming `uploadCloudinary` function handles base64 uploads
+                const imageUrl = await uploadCloudinary(base64Image);
+                console.log('Uploaded image URL:', imageUrl);
+                imageUrls.push(imageUrl); // Collect all image URLs
+            } catch (uploadError) {
+                console.error('Error uploading image to Cloudinary:', uploadError);
+                // Handle upload errors (e.g., continue or halt based on your needs)
+                return res.status(500).json({ success: false, message: 'Image upload failed' });
+            }
+        }
+
+        // Pass the array of image URLs to the createPost use case
+        const result = await userUseCase.createPost(imageUrls, caption, userIdObj);
         return res.json(result);
     } catch (error) {
         console.error('Error in userPostControll:', error);
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
+
 
 export async function getUserPostsControll(req:Request,res:Response): Promise<any>{
 

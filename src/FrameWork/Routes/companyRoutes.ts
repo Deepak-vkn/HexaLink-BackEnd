@@ -1,7 +1,7 @@
 
 // backend/src/framework/router/userRouter.ts
 import express from 'express';
-import jwtVerifyCompamny from '../utilits/jwtVerifyUser'
+import protectCompany from '../utilits/jwtVerifycCompany';
 import {registerCompanyController,verifyOtpCompanyController,
     loginCompanyController,resendOtpCompanyController,
     resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController
@@ -17,10 +17,11 @@ router.post('/resendOtp',resendOtpCompanyController)
 router.post('/forgetPassword', forgetPasswordCompanyController);
 router.post('/resetPassword', resetPasswordCompanyController);
 router.post('/block',blockUserCompanyController)
-router.post('/createJob',createJobController)
-router.post('/fetchJobs',fetchJobsController)
-router.post('/updateJob/:jobId',updateJobController)
-router.get('/fetchApplications',fetchCompanyApplicationsUseCase)
-router.get('/updateApplicationStatus',updateApplicationStatusUserControll)
+router.post('/createJob',protectCompany,createJobController)
+router.post('/fetchJobs',protectCompany,fetchJobsController)
+router.post('/updateJob/:jobId',protectCompany,updateJobController)
+router.get('/fetchApplications',protectCompany,fetchCompanyApplicationsUseCase)
+router.get('/updateApplicationStatus',protectCompany,updateApplicationStatusUserControll)
+router.get('/verify-token',protectCompany)
 
 export default router;

@@ -6,7 +6,7 @@ import userRouter from '../Routes/userRoutes';
 import companyRouter from '../Routes/companyRoutes'; 
 import adminRouter from '../Routes/adminRoutes'; 
 import cors from 'cors'; 
-
+import cookieParser from 'cookie-parser'; // Import cookie-parser
 dotenv.config();
 
 const app = express();
@@ -22,8 +22,7 @@ const corsOptions = {
 
 
 app.use(cors(corsOptions));
-
-
+app.use(cookieParser())
 app.use(bodyParser.json({ limit: '50mb' })); // Adjust the limit as needed
 
 // Increase the limit for URL-encoded payloads

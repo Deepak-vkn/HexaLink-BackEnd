@@ -7,29 +7,37 @@ interface DecodedToken extends JwtPayload {
 }
 
 const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    let token: string | undefined = req.cookies?.user;
+    console.log('raeched  toeknvalidtion')
+  
+    let token: string = req.cookies?.user;
 
     console.log(token);
 
     if (token) {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as DecodedToken;
-
             const user = await User.findById(decoded.userId)
 
             if (user) {
                 console.log("TOKEN FOUND IN MIDDLEWARE");
+                console.log('token vaidetd')
+                if (req.path === '/verify-token') {
+                     res.status(200).json({ token: true, message: "Token is valid" });
+                     return
+                }
                 next();
             } else {
-                res.status(401).json({ token: false, message: "User not found",role:'user' });
+                console.log('token not vaidted')
+                res.json({ token: false, message: "User not found",role:'user' });
             }
         } catch (error) {
             console.error('Token verification failed:', error);
-            res.status(401).json({ token: false, message: "Unauthorized" });
+            res.json({ token: false, message: "Unauthorized" });
         }
-    } else {
+    } 
+    else {
         console.log("Token not found in middleware");
-        res.status(401).json({ token: false, message: "Unauthorized" });
+        res.json({ token: false, message: "Unauthorized" });
     }
 }
 

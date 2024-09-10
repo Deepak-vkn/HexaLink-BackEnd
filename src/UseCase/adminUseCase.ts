@@ -10,7 +10,7 @@ class AdminUseCase {
         this.adminRepository = adminRepository;
     }
 
-    public async verifyLogin(email: string, password: string): Promise<{ success: boolean, message: string, admin?: AdminDocument }> {
+     async verifyLogin(email: string, password: string): Promise<{ success: boolean, message: string, admin?: AdminDocument }> {
         try {
             const admin = await this.adminRepository.findAdminByEmail(email);
 
@@ -29,11 +29,11 @@ class AdminUseCase {
         }
     }
 
-    public async fetchUsersAdminCase(): Promise<UserDocument[]> {
+     async fetchUsersAdminCase(): Promise<UserDocument[]> {
         const users = await this.adminRepository.fetchUsers(); 
         return users; 
     }
-    public async fetchCompanyAdminCase(): Promise<CompanyDocument[]> {
+     async fetchCompanyAdminCase(): Promise<CompanyDocument[]> {
         const users = await this.adminRepository.fetchCompany(); 
         return users; 
     }

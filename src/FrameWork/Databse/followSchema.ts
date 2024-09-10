@@ -3,7 +3,7 @@ import { Follow } from '../../Domain/followTypes';
 
 
 export interface FollowStatus {
-  id: mongoose.Types.ObjectId; // Use mongoose.Types.ObjectId
+  id: mongoose.Types.ObjectId; 
   followTime: Date;
   status: 'requested' | 'approved';
 }

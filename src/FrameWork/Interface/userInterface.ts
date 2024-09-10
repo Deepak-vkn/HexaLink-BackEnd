@@ -18,7 +18,7 @@ export interface IUserRepository {
     deleteOtpById(userId:  mongoose.Types.ObjectId): Promise<void>;
     getUserById(userId: mongoose.Types.ObjectId): Promise<UserDocument | null>;
     getTokenById(userId:  mongoose.Types.ObjectId): Promise<TokenDocument | null>;
-    createPostRepo(file:string,caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
+    createPostRepo(images:string[],caption:string,userId:mongoose.Types.ObjectId):Promise<PostDocument|null>
     getUserPosts(userId:mongoose.Types.ObjectId):Promise<PostDocument[]|null>
     fetchJobsRepository():Promise<JobDocument[]|null>
     createApplication(applicationData: {
@@ -31,7 +31,7 @@ export interface IUserRepository {
     }): Promise<{ success: boolean, message: string }> 
     updateApplicationCount(jobId: string): Promise<void>
     searchUsers(query?:string):Promise<UserDocument[]>;
-    fetchFollow(userId: mongoose.Types.ObjectId):Promise<FollowDocument| null>;
+    fetchFollow(userId: mongoose.Types.ObjectId):Promise<any| null>;
     followUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string,followDoc?:FollowDocument }> 
     fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]>
     unfollowUser(userId:mongoose.Types.ObjectId,followId:mongoose.Types.ObjectId): Promise<{ success: boolean, message: string,followDoc?:FollowDocument }> 
