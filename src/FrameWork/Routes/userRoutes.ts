@@ -13,7 +13,7 @@ import {
     fetchFllowControll,followUserControll,fetchNotificationControll,
     fetchUserControll,unFollowUserControll,likeUserControll,
     updatePostUserControll,deletePostUserControll,
-    addCommentUserControll,fetchFollowingPosts
+    addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll
 
 } from '../../Adapters/userControll'; 
 
@@ -53,5 +53,6 @@ router.post('/updatePost',jwtVerifyUser, updatePostUserControll);
 router.get('/deletePost',jwtVerifyUser, deletePostUserControll);
 router.post('/postComment',jwtVerifyUser, addCommentUserControll);
 router.get('/fetchFollowingPosts',jwtVerifyUser, fetchFollowingPosts)
+router.get('/followSuggestion',followSuggestionUserControll)
 router.get('/verify-token',jwtVerifyUser)
 export default router;

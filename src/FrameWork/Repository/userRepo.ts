@@ -515,5 +515,29 @@ export class UserRepository implements IUserRepository {
         return [];
     }
     }
+  async  fetchSuggestions(userId: mongoose.Types.ObjectId): Promise<UserDocument[]> {
+        try {
+    
+          const followDoc = await Follow.findOne({ userId });
+      
+          if (!followDoc) {
+            throw new Error('User not found');
+          }
+
+          const followedUserIds = followDoc.following.map(follow => follow.id);
+      
+          const suggestions = await User.find({
+            _id: {
+              $nin: followedUserIds,  
+              $ne: userId          
+            }
+          });
+      
+          return suggestions;
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+          throw error;
+        }
+      }
 
 }

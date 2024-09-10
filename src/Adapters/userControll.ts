@@ -555,3 +555,21 @@ export async function fetchFollowingPosts(req: Request, res: Response): Promise<
         res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }
+
+export async function followSuggestionUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId} = req.query; 
+
+        if (typeof userId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(userId);
+        
+        const result=await userUseCase.fetchSuggestions(postObjectId)
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}

@@ -622,6 +622,18 @@ export class UserUseCase {
         }
     }
     
+    async fetchSuggestions(userId: mongoose.Types.ObjectId): Promise<any> {
+        try {
+            console.log('folow data are,',userId)
+          const response = await this.userRepository.fetchSuggestions(userId);
+          console.log(response)
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
     
       
     }
