@@ -634,6 +634,19 @@ export class UserUseCase {
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
+
+  
+      async deleteCommentUseCase(postId: mongoose.Types.ObjectId,commentIndex:number): Promise<any> {
+        try {
+            console.log('folow data are,',postId)
+          const response = await this.userRepository.deleteComment(postId,commentIndex);
     
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
       
     }

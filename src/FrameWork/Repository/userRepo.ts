@@ -539,5 +539,42 @@ export class UserRepository implements IUserRepository {
           throw error;
         }
       }
+      async deleteComment(
+        postId: mongoose.Types.ObjectId,
+        commentIndex: number,
+      ): Promise<{ success: boolean; message: string; populatedPost?:any}> {
+        try {
+          console.log('Post ID and comment index in repo:', postId, commentIndex);
+      
+          const post = await Post.findById(postId);
+      
+          if (!post) {
+            return { success: false, message: 'Post not found' };
+          }
+          if (commentIndex < 0 || commentIndex >= post.comments.length) {
+            return { success: false, message: 'Invalid comment index' };
+          }
+          post.comments.splice(commentIndex, 1);
 
+          await post.save();
+          const populatedPost = await Post.findById(postId)
+      .populate({
+        path: 'userId',
+        select: 'name image',
+      })
+      .populate({
+        path: 'comments.userId',
+        select: 'name image',
+      })
+      .populate({
+        path: 'likes.userId',
+        select: 'name image',
+      });
+          return { success: true, message: 'Comment deleted successfully', populatedPost };
+        } catch (error) {
+          console.error('Error deleting comment:', error);
+          return { success: false, message: 'Failed to delete comment' };
+        }
+      }
+      
 }

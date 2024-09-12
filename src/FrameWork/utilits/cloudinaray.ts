@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-// Helper function to upload image to Cloudinary
 async function uploadCloudinary(filePath: string) {
     cloudinary.config({
         cloud_name: process.env.CLOUD_NAME,

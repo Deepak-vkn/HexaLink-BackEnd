@@ -230,18 +230,16 @@ export async function userPostControll(req: Request, res: Response) {
         const { caption, userId, images } = req.body;
         console.log('Received images:', images);
 
-        // Check if all required fields are present
         if (!caption || !userId) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        // Normalize images into an array
         let imageArray: string[] = [];
         if (Array.isArray(images)) {
-            // If images is already an array, use it directly
+ 
             imageArray = images;
         } else if (typeof images === 'string') {
-            // If images is a single string, convert it into an array
+  
             imageArray = [images];
         } else {
             return res.status(400).json({ success: false, message: 'Invalid images format' });
@@ -250,21 +248,19 @@ export async function userPostControll(req: Request, res: Response) {
         const userIdObj = new mongoose.Types.ObjectId(userId);
         const imageUrls: string[] = [];
 
-        // Process each image (upload base64 to Cloudinary)
         for (const base64Image of imageArray) {
             try {
-                // Assuming `uploadCloudinary` function handles base64 uploads
+    
                 const imageUrl = await uploadCloudinary(base64Image);
                 console.log('Uploaded image URL:', imageUrl);
-                imageUrls.push(imageUrl); // Collect all image URLs
+                imageUrls.push(imageUrl); 
             } catch (uploadError) {
                 console.error('Error uploading image to Cloudinary:', uploadError);
-                // Handle upload errors (e.g., continue or halt based on your needs)
+     
                 return res.status(500).json({ success: false, message: 'Image upload failed' });
             }
         }
 
-        // Pass the array of image URLs to the createPost use case
         const result = await userUseCase.createPost(imageUrls, caption, userIdObj);
         return res.json(result);
     } catch (error) {
@@ -568,6 +564,23 @@ export async function followSuggestionUserControll(req: Request, res: Response):
         
         const result=await userUseCase.fetchSuggestions(postObjectId)
          res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function deleteCommentUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { postId, commentIndex } = req.body; 
+        console.log('postid and comment index is ',postId, commentIndex)
+
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        
+        const result=await userUseCase.deleteCommentUseCase(postObjectId,commentIndex)
+        console.log('reult of deletecomment',result)
+        res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
         res.status(500).json({ success: false, message: 'Error updating education' });

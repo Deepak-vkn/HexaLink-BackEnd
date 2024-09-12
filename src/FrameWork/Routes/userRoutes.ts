@@ -13,7 +13,8 @@ import {
     fetchFllowControll,followUserControll,fetchNotificationControll,
     fetchUserControll,unFollowUserControll,likeUserControll,
     updatePostUserControll,deletePostUserControll,
-    addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll
+    addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
+    deleteCommentUserControll
 
 } from '../../Adapters/userControll'; 
 
@@ -23,7 +24,6 @@ const upload = multer({
         fileSize: 50 * 1024 * 1024 
     }
 });
-
 
 const router = express.Router();
 
@@ -54,5 +54,6 @@ router.get('/deletePost',jwtVerifyUser, deletePostUserControll);
 router.post('/postComment',jwtVerifyUser, addCommentUserControll);
 router.get('/fetchFollowingPosts',jwtVerifyUser, fetchFollowingPosts)
 router.get('/followSuggestion',followSuggestionUserControll)
+router.delete('/deleteComment',deleteCommentUserControll)
 router.get('/verify-token',jwtVerifyUser)
 export default router;
