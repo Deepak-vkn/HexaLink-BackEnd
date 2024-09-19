@@ -12,8 +12,8 @@ import { PostDocument } from '../FrameWork/Databse/postSchema';
 import Job,{ JobDocument } from '../FrameWork/Databse/jobSchema';
 import { FollowDocument } from '../FrameWork/Databse/followSchema';
 import { NotificationDocument } from '../FrameWork/Databse/notificationSchema';
-
-
+import { ConversationDocument } from '../FrameWork/Databse/conversationSchema';
+import { MessageDocument } from '../FrameWork/Databse/messageSchema';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -41,7 +41,6 @@ export class UserUseCase {
         if (existingUser?.is_verified) {
             return { success: false, message: 'User with this email already exists' };
         }
-
         const user = await this.userRepository.createUser(userData);
 
         if (user) {
@@ -202,7 +201,7 @@ export class UserUseCase {
     }
 
      async getUser(userId: mongoose.Types.ObjectId): Promise<UserDocument | null> {
-        console.log('usecase is ',userId)
+
         return await this.userRepository.findUserById(userId);
     }
      async getOtpTimeLeft(userId: mongoose.Types.ObjectId): Promise<{ success: boolean, timeLeft?: number, message?: string }> {
@@ -470,7 +469,7 @@ export class UserUseCase {
         try {
           const follow = await this.userRepository.fetchFollow(userId);
           if (follow) {
-            console.log(follow)
+   
             return { success: true, follow };
           }
 
@@ -484,9 +483,8 @@ export class UserUseCase {
       }
        async followUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
-            console.log('folow data are,',userId, followId)
+    
           const response = await this.userRepository.followUser(userId, followId);
-          console.log(response)
       
         
           return response;
@@ -499,7 +497,7 @@ export class UserUseCase {
 
        async fetchNotification(userId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; data?: NotificationDocument[] }> {
         try {
-            console.log('Notification data for user:', userId);
+
             
 
             const notifications = await this.userRepository.fetchNotifications(userId);
@@ -529,10 +527,9 @@ export class UserUseCase {
     }
      async unFollowUser(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
-            console.log('folow data are,',userId, unfollowId)
+
           const response = await this.userRepository.unfollowUser(userId, unfollowId);
-          console.log(response)
-      
+  
     
           return response;
       
@@ -544,9 +541,9 @@ export class UserUseCase {
 
        async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
-            console.log('folow data are,',postId,userId)
+        
           const response = await this.userRepository.likepost(postId,userId);
-          console.log(response)
+        
       
 
           return response;
@@ -558,10 +555,9 @@ export class UserUseCase {
       }
        async updatePost(postId: mongoose.Types.ObjectId,caption:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
-            console.log('update post data are,',postId,caption)
-          const response = await this.userRepository.updatePost(postId,caption);
-          console.log(response)
       
+          const response = await this.userRepository.updatePost(postId,caption);
+    
 
           return response;
       
@@ -573,9 +569,9 @@ export class UserUseCase {
 
       public async deletePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
         try {
-            console.log('update post data are,',postId)
+          
           const response = await this.userRepository.deletePost(postId);
-          console.log(response)
+    
           return response;
       
         } catch (error) {
@@ -585,10 +581,9 @@ export class UserUseCase {
       }
        async addComment(postId: mongoose.Types.ObjectId,userId:string,comment:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
-            console.log('update post data are,',postId,userId,comment)
+          
           const response = await this.userRepository.addComment(postId,userId,comment);
-          console.log(response)
-      
+   
 
           return response;
       
@@ -624,9 +619,9 @@ export class UserUseCase {
     
     async fetchSuggestions(userId: mongoose.Types.ObjectId): Promise<any> {
         try {
-            console.log('folow data are,',userId)
+        
           const response = await this.userRepository.fetchSuggestions(userId);
-          console.log(response)
+        
           return response;
       
         } catch (error) {
@@ -638,7 +633,7 @@ export class UserUseCase {
   
       async deleteCommentUseCase(postId: mongoose.Types.ObjectId,commentIndex:number): Promise<any> {
         try {
-            console.log('folow data are,',postId)
+    
           const response = await this.userRepository.deleteComment(postId,commentIndex);
     
           return response;
@@ -648,5 +643,48 @@ export class UserUseCase {
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
-      
+      async findOrCreateConversationUseCase(user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId): Promise<ConversationDocument>{
+        const result=await this.userRepository.findOrCreateConversation(user1Id,user2Id)
+        return result
+      }
+
+
+      async  saveMessageUseCase(
+        conversationId: mongoose.Types.ObjectId,
+        sendTo: mongoose.Types.ObjectId,
+        sendBy: mongoose.Types.ObjectId,
+        content: string
+      ): Promise<{ success: boolean; message: string; data: MessageDocument }>{
+        
+        const result=await this.userRepository.saveMessage(conversationId,sendTo,sendBy,content)
+        if(result.success){
+            const conversation=await this.userRepository.getConversationById(conversationId)
+            if(conversation){
+                conversation.lastMessage=content
+               await conversation.save()
+            }
+        }
+        return result
+      }
+      async  getConversationd(currentUserId: string) {
+        try {
+            const conversations = await this.userRepository.getConversationsForUser(currentUserId);
+            return conversations;
+        } catch (error) {
+            console.error('Error fetching conversations and messages:', error);
+            throw error;
+        }
+    }
+    async getMessage(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]> {
+        try {
+            // Fetch messages using the repository method
+            const messages = await this.userRepository.getMessages(conversationId);
+            return messages;
+        } catch (error) {
+            console.error('Error fetching conversations and messages:', error);
+            throw error;
+        }
+    }
+
+
     }

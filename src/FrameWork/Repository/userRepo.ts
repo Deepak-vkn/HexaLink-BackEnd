@@ -8,7 +8,8 @@ import Job,{ JobDocument } from '../Databse/jobSchema';
 import Application,{ ApplicationDocument } from '../Databse/applicationSchema';
 import Follow,{ FollowDocument } from '../Databse/followSchema';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
-
+import Conversation,{ ConversationDocument } from '../Databse/conversationSchema';
+import  Message,{ MessageDocument } from '../Databse/messageSchema';
 
 export class UserRepository implements IUserRepository {
     
@@ -21,6 +22,7 @@ export class UserRepository implements IUserRepository {
         return user
     }
 
+   
     async findUserByEmail(email: string): Promise<UserDocument | null> {
         return User.findOne({ email }).exec();
     }
@@ -215,8 +217,6 @@ export class UserRepository implements IUserRepository {
           if (!userDoc||!followDoc) {
             return { success: false, message: 'User not found' };
           }
-      
-          // Check if the followId is already in the following array
           const existingFollow = userDoc.following.find(follow => follow.id.toString() === followId.toString());
           const existingFollower = followDoc.followers.find(follow => follow.id.toString() === userId.toString());
      
@@ -227,19 +227,8 @@ export class UserRepository implements IUserRepository {
             existingFollower.status = 'approved';
             await userDoc.save();
             await followDoc.save();
-            await Notification.create({
-                userId: followId, 
-                type: 'follow',
-                message: ` accepted your follow request.`,
-                sourceId: userId, 
-              
-                isRead: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                redirectUrl: `/profile/${userId}`,
-                status: 'sent',
-              });
-
+            // Create notification for sent follow request
+            await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
             return { success: true, message: 'Follow  resquest accepted ',followDoc };
           } else {
             // If not already following, add the new followId with status 'requested'
@@ -255,18 +244,8 @@ export class UserRepository implements IUserRepository {
               } as any);
           }
 
-          await Notification.create({
-            userId: followId, 
-            type: 'follow',
-            message: ` sent you a follow request.`,
-            sourceId: userId, 
-            isRead: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            redirectUrl: `/profile/${userId}`,
-            status: 'sent',
-          });
 
+           await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
           await userDoc.save();
           await followDoc.save();
           return { success: true, message: 'Follow request send successfully' ,followDoc};
@@ -276,6 +255,24 @@ export class UserRepository implements IUserRepository {
           return { success: false, message: 'An error occurred while following the user' };
         }
      }
+     async  createNotification(userId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string, message: string): Promise<void> {
+      try {
+          await Notification.create({
+              userId,
+              type,
+              message,
+              sourceId,
+              isRead: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              redirectUrl: `/profile/${sourceId}`, // Adjust as needed
+              status: 'sent',
+          });
+      } catch (error) {
+          console.error('Error in createNotification function:', error);
+          throw new Error('Failed to create notification');
+      }
+  }
 
 
     async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
@@ -295,7 +292,6 @@ export class UserRepository implements IUserRepository {
             return { success: false, message: 'User not found' };
         }
 
-        // Remove the followId from the user's following array
         const followingIndex = userDoc.following.findIndex(follow => follow.id.toString() === followId.toString());
         const followerIndex = followDoc.followers.findIndex(follow => follow.id.toString() === userId.toString());
 
@@ -306,18 +302,18 @@ export class UserRepository implements IUserRepository {
             await userDoc.save();
             await followDoc.save();
 
-            await Notification.create({
-                userId: followId,
-                type: 'unfollow',
-                message: `${userId} has unfollowed you.`,
-                sourceId: userId, 
-                isRead: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                redirectUrl: `/profile/${userId}`,
-                status: 'sent',
-            });
-
+            // await Notification.create({
+            //     userId: followId,
+            //     type: 'unfollow',
+            //     message: `${userId} has unfollowed you.`,
+            //     sourceId: userId, 
+            //     isRead: false,
+            //     createdAt: new Date(),
+            //     updatedAt: new Date(),
+            //     redirectUrl: `/profile/${userId}`,
+            //     status: 'sent',
+            // });
+            
             return { success: true, message: 'Successfully unfollowed the user', followDoc };
         } else {
             return { success: false, message: 'You are not following this user' };
@@ -327,7 +323,7 @@ export class UserRepository implements IUserRepository {
         return { success: false, message: 'An error occurred while unfollowing the user' };
     }
     }
-    
+
     async   likepost(postId: mongoose.Types.ObjectId, userId: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
       
@@ -539,7 +535,7 @@ export class UserRepository implements IUserRepository {
           throw error;
         }
       }
-      async deleteComment(
+  async deleteComment(
         postId: mongoose.Types.ObjectId,
         commentIndex: number,
       ): Promise<{ success: boolean; message: string; populatedPost?:any}> {
@@ -576,5 +572,132 @@ export class UserRepository implements IUserRepository {
           return { success: false, message: 'Failed to delete comment' };
         }
       }
+
+      async findOrCreateConversation(user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId): Promise<ConversationDocument> {
+        // Try to find an existing conversation
+        let conversation = await Conversation.findOne({
+            $or: [
+                { user1: user1Id, user2: user2Id },
+                { user1: user2Id, user2: user1Id }
+            ]
+        })
+        .populate('user1', 'name image') // Populate user1 with name and image
+        .populate('user2', 'name image') // Populate user2 with name and image
+        .exec();
+    
+        // If no conversation is found, create a new one
+        if (!conversation) {
+            conversation = await Conversation.create({ user1: user1Id, user2: user2Id });
+    
+            // Populate newly created conversation
+            conversation = await Conversation.findById(conversation._id)
+                .populate('user1', 'name image')
+                .populate('user2', 'name image')
+                .exec();
+        }
+    
+        return conversation as ConversationDocument;
+    }
+    
+      async  saveMessage(
+        conversationId: mongoose.Types.ObjectId,
+        sendTo: mongoose.Types.ObjectId,
+        sendBy: mongoose.Types.ObjectId,
+        content: string
+      ): Promise<{ success: boolean; message: string; data: MessageDocument }> {
+        const newMessage = await Message.create({
+          conversationId,
+          sendTo,
+          sendBy,
+          content,
+          sendTime: new Date(), 
+          status: 'sent', 
+        });
       
+        return {
+          success: true,
+          message: 'Message sent successfully',
+          data: newMessage,
+        };
+      }
+
+
+      async  getUsersInConversationWith(currentUserId: string): Promise<mongoose.Types.ObjectId[]> {
+        try {
+            const userObjectId = new mongoose.Types.ObjectId(currentUserId);
+    
+            // Fetch all conversations where the current user is either user1 or user2
+            const conversations = await Conversation.find({
+                $or: [
+                    { user1: userObjectId },
+                    { user2: userObjectId }
+                ]
+            });
+    
+            // Extract the user IDs that the current user has conversations with
+            const userIds = conversations.map(conversation => {
+                // Convert user1 and user2 to string and compare with userObjectId
+                const user1Id = new mongoose.Types.ObjectId(conversation.user1.toString());
+                const user2Id = new mongoose.Types.ObjectId(conversation.user2.toString());
+    
+       
+                if (user1Id.equals(userObjectId)) {
+                    return user2Id;
+                } else {
+                    return user1Id;
+                }
+            });
+    
+            return userIds;
+        } catch (error) {
+            console.error('Error fetching users in conversation with:', error);
+            throw error;
+        }
+    }
+
+    async getConversationsForUser(currentUserId: string): Promise<ConversationDocument[]> {
+      const userObjectId = new mongoose.Types.ObjectId(currentUserId);
+    
+      const conversations = await Conversation.find({
+          $or: [
+              { user1: userObjectId },
+              { user2: userObjectId }
+          ]
+      })
+      .populate('user1', 'name image') 
+      .populate('user2', 'name image') 
+      .exec();
+    
+      return conversations;
+  }
+  
+  
+  async  getMessagesForConversation(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]> {
+    const messages = await Message.find({ conversationId }).populate('sendBy', 'name image').populate('sendTo', 'name image');
+    return messages;
+}
+  async  getConversationById(convId: mongoose.Types.ObjectId): Promise<ConversationDocument | null> {
+    const conversation = await Conversation.findById(convId)
+    .populate('user1', 'name image') 
+    .populate('user2', 'name image') 
+    .exec();
+  return conversation;
+}
+  async getMessages(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>  {
+  try {
+    const messages = await Message.find({ conversationId })
+      .sort({ sendTime: 1 })
+      .populate({
+        path: 'conversationId',
+        populate: [
+          { path: 'user1', select: 'name image' },
+          { path: 'user2', select: 'name image' }
+        ]
+      }); 
+    return messages;
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    throw error;
+  }
+};
 }

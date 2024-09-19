@@ -5,8 +5,10 @@ import { TokenDocument } from '../Databse/tokenSchema';
 import { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
 import Follow,{FollowDocument} from '../Databse/followSchema';
+import Conversation,{ ConversationDocument } from '../Databse/conversationSchema';
 import mongoose from 'mongoose';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
+import Message,{ MessageDocument } from '../Databse/messageSchema';
 
 
 export interface IUserRepository {
@@ -42,4 +44,17 @@ export interface IUserRepository {
     fetchPostsByUserIds(userIds: mongoose.Types.ObjectId[]): Promise<PostDocument[]>
     fetchSuggestions(userIds: mongoose.Types.ObjectId):Promise<UserDocument[]>;
     deleteComment(postId: mongoose.Types.ObjectId,commentIndex:number): Promise<{success: boolean; message: string; populatedPost?:any}>
+    createNotification(userId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string, message: string): Promise<void>
+    findOrCreateConversation(user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId): Promise<ConversationDocument>
+    saveMessage(
+        conversationId: mongoose.Types.ObjectId,
+        sendTo: mongoose.Types.ObjectId,
+        sendBy: mongoose.Types.ObjectId,
+        content: string
+      ): Promise<{ success: boolean; message: string; data: MessageDocument }>
+
+      getConversationsForUser(currentUserId: string): Promise<ConversationDocument[]>
+      getMessagesForConversation(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
+      getConversationById(convId: mongoose.Types.ObjectId): Promise< ConversationDocument| null >
+      getMessages(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
 }

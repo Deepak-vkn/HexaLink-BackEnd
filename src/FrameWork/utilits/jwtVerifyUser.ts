@@ -7,7 +7,7 @@ interface DecodedToken extends JwtPayload {
 }
 
 const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    console.log('raeched  toeknvalidtion')
+ 
   
     let token: string = req.cookies?.user;
 
@@ -19,15 +19,14 @@ const protect = async (req: Request, res: Response, next: NextFunction): Promise
             const user = await User.findById(decoded.userId)
 
             if (user) {
-                console.log("TOKEN FOUND IN MIDDLEWARE");
-                console.log('token vaidetd')
+    
                 if (req.path === '/verify-token') {
                      res.status(200).json({ token: true, message: "Token is valid" });
                      return
                 }
                 next();
             } else {
-                console.log('token not vaidted')
+               
                 res.json({ token: false, message: "User not found",role:'user' });
             }
         } catch (error) {

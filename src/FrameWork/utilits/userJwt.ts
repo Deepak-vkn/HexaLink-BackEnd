@@ -21,17 +21,14 @@ const generateToken = ({ res, userId, role }: GenerateTokenParams): void => {
       expiresIn: '30d',
     });
 
-    console.log('Generated JWT token:', token,role);
-
     res.cookie(role, token, {
       httpOnly: true,
       secure:process.env.NODE_ENV != 'development',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, 
 
     });
 
-    console.log('JWT token set in cookie successfully', res.cookie);
   } catch (error) {
 
     console.error('Error generating token:', error);

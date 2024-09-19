@@ -1,9 +1,11 @@
-import app from './FrameWork/server/app' 
+import server from './FrameWork/server/app' 
 
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 5001;
 const HOST = 'localhost'; 
 
-app.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, () => {
   console.log(`Server running at http://${HOST}:${PORT}`);
 });
+
+

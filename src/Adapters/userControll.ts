@@ -120,7 +120,7 @@ export async function logout(req: Request, res: Response): Promise<void> {
 
 export async function forgetPasswordUserController(req: Request, res: Response): Promise<void> {
     try {
-        console.log('reched here')
+      
         const { email } = req.body;
 
         const user = await userRepository.findUserByEmail(email);
@@ -193,9 +193,9 @@ export async function fetchtimerUserController(req: Request, res: Response): Pro
 
 export async function blockUserUserController(req: Request, res: Response): Promise<void> {
     const{userId}=req.body
-    console.log('user is',userId)
+ 
     try {
-        console.log('reched bolck user')
+       
        
         const result = await userUseCase.blockUser(userId); 
         
@@ -228,7 +228,7 @@ export async function updateUserController (req:Request,res:Response) :Promise<v
 export async function userPostControll(req: Request, res: Response) {
     try {
         const { caption, userId, images } = req.body;
-        console.log('Received images:', images);
+
 
         if (!caption || !userId) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -252,7 +252,7 @@ export async function userPostControll(req: Request, res: Response) {
             try {
     
                 const imageUrl = await uploadCloudinary(base64Image);
-                console.log('Uploaded image URL:', imageUrl);
+               
                 imageUrls.push(imageUrl); 
             } catch (uploadError) {
                 console.error('Error uploading image to Cloudinary:', uploadError);
@@ -316,17 +316,9 @@ export async function fetchJobsController(req: Request, res: Response): Promise<
 
 export async function applyJobController(req: Request, res: Response): Promise<void> {
     try {
-        console.log('Reached backend job application');
-        console.log('Name:', req.body.name);
-        console.log('Email:', req.body.email);
-
+   
         const resume = req.file ? req.file.buffer : null; 
-        if (req.file) {
-            console.log('Uploaded File:', req.file);
-        } else {
-            console.log('No file uploaded');
-        }
-
+   
         const applicationData :any= {
             userId: req.body.userId, 
             jobId: req.body.jobId, 
@@ -374,8 +366,7 @@ export async function searchUsersControll(req: Request, res: Response): Promise<
 
 export async function fetchFllowControll(req: Request, res: Response): Promise<void> {
     const { userId } = req.query;
-    console.log('User ID:', userId);
-    console.log('reachedin backend')
+
     try {
       if (!userId) {
         res.json({ success: false, message: 'User ID is required' });
@@ -385,6 +376,7 @@ export async function fetchFllowControll(req: Request, res: Response): Promise<v
   
       const result = await userUseCase.fetchFllowUsecase(userObjectId);
       if (result) {
+  
         res.json(result);
       } else {
         res.json({ success: false, message: 'Follow document not found' });
@@ -394,12 +386,11 @@ export async function fetchFllowControll(req: Request, res: Response): Promise<v
       res.status(500).json({ success: false, message: 'Error fetching follow document' });
     }
   }
-
   export async function followUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { userId,followId} = req.body; 
         const result=await userUseCase.followUser(userId,followId)
-        console.log('result  follow is ', result)
+       
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -418,7 +409,7 @@ export async function fetchNotificationControll(req: Request, res: Response): Pr
 
         const objectId = new mongoose.Types.ObjectId(userId);
         const result=await userUseCase.fetchNotification(objectId)
-        console.log('result  follow is ', result)
+
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -426,22 +417,18 @@ export async function fetchNotificationControll(req: Request, res: Response): Pr
     }
 }
 
-
-
 export async function fetchUserControll(req: Request, res: Response): Promise<void> {
-   console.log('raeched abckend for fetch user')
+  
     try {
         const { userId } = req.query;
-        console.log('query is ',userId)
+
         if (typeof userId !== 'string') {
             res.status(400).json({ success: false, message: 'Invalid user ID format' });
             return;
         }
         const objectId = new mongoose.Types.ObjectId(userId)
         const result = await userUseCase.getUser(objectId);
-        if(result){
-            console.log(result)
-        }
+        
         res.json(result);
     } catch (error) {
         console.error('Error in fetching jobs:', error);
@@ -453,9 +440,9 @@ export async function fetchUserControll(req: Request, res: Response): Promise<vo
 export async function unFollowUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { userId,unfollowId} = req.body; 
-        console.log('userir and followid is',userId,unfollowId)
+        
         const result=await userUseCase.unFollowUser(userId,unfollowId)
-        console.log('result  follow is ', result)
+       
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -465,7 +452,7 @@ export async function unFollowUserControll(req: Request, res: Response): Promise
 
 
 export async function likeUserControll(req: Request, res: Response): Promise<void> {
-    console.log('Reached backend for like post');
+    
     try {
         const { postId, userId } = req.query;
 
@@ -494,7 +481,7 @@ export async function updatePostUserControll(req: Request, res: Response): Promi
     try {
         const { caption,postId} = req.body; 
         const postObjectId = new mongoose.Types.ObjectId(postId);
-        console.log('postId and Caption is', caption,postId)
+
         const result=await userUseCase.updatePost(postObjectId,caption)
          res.json(result);
     } catch (error) {
@@ -511,7 +498,7 @@ export async function deletePostUserControll(req: Request, res: Response): Promi
             return;
         }
         const postObjectId = new mongoose.Types.ObjectId(postId);
-        console.log('postId  is', postId)
+
         const result=await userUseCase.deletePost(postObjectId)
          res.json(result);
     } catch (error) {
@@ -524,7 +511,7 @@ export async function addCommentUserControll(req: Request, res: Response): Promi
     try {
         const { postId,userId,comment} = req.body; 
         const postObjectId = new mongoose.Types.ObjectId(postId);
-        console.log('postId and Caption is',postId,userId,comment)
+
         const result=await userUseCase.addComment(postObjectId,userId,comment)
          res.json(result);
     } catch (error) {
@@ -574,15 +561,107 @@ export async function followSuggestionUserControll(req: Request, res: Response):
 export async function deleteCommentUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { postId, commentIndex } = req.body; 
-        console.log('postid and comment index is ',postId, commentIndex)
+   
 
         const postObjectId = new mongoose.Types.ObjectId(postId);
         
         const result=await userUseCase.deleteCommentUseCase(postObjectId,commentIndex)
-        console.log('reult of deletecomment',result)
+
         res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
         res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }
+
+
+export async function sendMessage(conversationId: string | undefined, sendTo: string, sendBy: string, content: string): Promise<void> {
+    try {
+        let convId: mongoose.Types.ObjectId | undefined;
+
+        if (conversationId) {
+            // Convert the conversationId to mongoose.Types.ObjectId if it is provided
+            convId = new mongoose.Types.ObjectId(conversationId);
+        }
+
+        const sendObjectId = new mongoose.Types.ObjectId(sendBy);
+        const receiveObjectId = new mongoose.Types.ObjectId(sendTo);
+
+        if (!convId) {
+            // Find or create a new conversation if conversationId was not provided
+            const conversation = await userUseCase.findOrCreateConversationUseCase(sendObjectId, receiveObjectId);
+            if (conversation) {
+                convId = conversation._id as mongoose.Types.ObjectId;
+            } else {
+                throw new Error("Failed to create or find a conversation.");
+            }
+        }
+
+        if (convId) {
+            // Use the ObjectId for the conversation
+            await userUseCase.saveMessageUseCase(convId, receiveObjectId, sendObjectId, content);
+        } else {
+            throw new Error("Conversation ID could not be determined.");
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        // Handle error appropriately (e.g., throw error, log it, etc.)
+    }
+  
+
+    
+}
+
+export async function  getConversationsAndMessages(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId } = req.query; 
+        if (typeof userId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid  userId format' });
+            return;
+        }
+        const result=await userUseCase.getConversationd(userId)
+        console.log('fetch conversation is',result)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function createConversationUseCase(req: Request, res: Response): Promise<void> {
+
+    try {
+        const { sendObjectId, receiveObjectId } = req.query; 
+        if (typeof sendObjectId !== 'string' || typeof receiveObjectId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid userId format' });
+            return;
+        }
+        const sendId = new mongoose.Types.ObjectId(sendObjectId);
+        const receiveId = new mongoose.Types.ObjectId(receiveObjectId);
+        const conversation = await userUseCase.findOrCreateConversationUseCase(sendId, receiveId);
+
+        res.json(conversation);
+    } catch (error) {
+        console.error('Error creating conversation:', error);
+        res.status(500).json({ success: false, message: 'Error creating conversation' });
+    }
+}
+
+
+export async function  getMessage(req: Request, res: Response): Promise<void> {
+    try {
+        const {conversationId } = req.query; 
+        if (typeof conversationId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid userId format' });
+            return;
+        }
+        const convId = new mongoose.Types.ObjectId(conversationId);
+        const message = await userUseCase.getMessage(convId );
+   
+        res.json(message);
+    } catch (error) {
+        console.error('Error creating conversation:', error);
+        res.status(500).json({ success: false, message: 'Error creating conversation' });
+    }
+}
+
