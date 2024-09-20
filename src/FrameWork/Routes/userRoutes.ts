@@ -14,7 +14,7 @@ import {
     fetchUserControll,unFollowUserControll,likeUserControll,
     updatePostUserControll,deletePostUserControll,
     addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
-    deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage
+    deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage,resetNotificationCount
 
 } from '../../Adapters/userControll'; 
 
@@ -58,6 +58,8 @@ router.delete('/deleteComment',deleteCommentUserControll)
 router.get('/messages',getConversationsAndMessages)
 router.get('/createConversation',createConversationUseCase)
 router.get('/getMessage',getMessage)
+router.get('/resetNotificationCount',resetNotificationCount)
+
 
 router.get('/verify-token',jwtVerifyUser)
 export default router;

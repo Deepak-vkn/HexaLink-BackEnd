@@ -10,7 +10,7 @@ import Follow,{ FollowDocument } from '../Databse/followSchema';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
 import Conversation,{ ConversationDocument } from '../Databse/conversationSchema';
 import  Message,{ MessageDocument } from '../Databse/messageSchema';
-
+import { emitNotification } from '../../FrameWork/socket/socket'
 export class UserRepository implements IUserRepository {
     
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
@@ -206,55 +206,62 @@ export class UserRepository implements IUserRepository {
           })
           .exec();
       }
-     async  followUser(userId:  mongoose.Types.ObjectId, followId:  mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+      async followUser(
+        userId: mongoose.Types.ObjectId, 
+        followId: mongoose.Types.ObjectId
+      ): Promise<{ success: boolean; message: string; followDoc?: FollowDocument }> {
         try {
-       
           const userDoc = await Follow.findOne({ userId });
-          const followDoc = await Follow.findOne({ userId:followId });
-          console.log('user is ',userDoc)
-          console.log('follower is ',followDoc)
+          const followDoc = await Follow.findOne({ userId: followId });
       
-          if (!userDoc||!followDoc) {
+          if (!userDoc || !followDoc) {
             return { success: false, message: 'User not found' };
           }
+      
           const existingFollow = userDoc.following.find(follow => follow.id.toString() === followId.toString());
           const existingFollower = followDoc.followers.find(follow => follow.id.toString() === userId.toString());
-     
-          if (existingFollow&& existingFollower) {
-            console.log('eneyred existing follow')
-         
+      
+          if (existingFollow && existingFollower) {
+            
             existingFollow.status = 'approved';
             existingFollower.status = 'approved';
+
+            // Save changes before sending notifications
             await userDoc.save();
             await followDoc.save();
-            // Create notification for sent follow request
-            await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
-            return { success: true, message: 'Follow  resquest accepted ',followDoc };
+            // Create notification after follow is approved
+            await this.createNotification(userId, followId, 'follow', ` accepted your follow request.`);
+            console.log('rerched acept request')
+            emitNotification(String(userId) , String(followId)); 
+            return { success: true, message: 'Follow request accepted', followDoc };
           } else {
+           
             // If not already following, add the new followId with status 'requested'
             userDoc.following.push({
-              id: followId as mongoose.Types.ObjectId ,
-              followTime: new Date(), 
+              id: followId as mongoose.Types.ObjectId,
+              followTime: new Date(),
               status: 'requested'
             } as any);
             followDoc.followers.push({
-                id: userId as mongoose.Types.ObjectId ,
-                followTime: new Date(), 
-                status: 'requested'
-              } as any);
+              id: userId as mongoose.Types.ObjectId,
+              followTime: new Date(),
+              status: 'requested'
+            } as any);
+            // Save changes before sending notifications
+            await userDoc.save();
+            await followDoc.save();
+      
+            // Create notification for sent follow request
+            await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
+              emitNotification(String(followId) , String(userId)); 
+            return { success: true, message: 'Follow request sent successfully', followDoc };
           }
-
-
-           await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
-          await userDoc.save();
-          await followDoc.save();
-          return { success: true, message: 'Follow request send successfully' ,followDoc};
-
         } catch (error) {
           console.error('Error in followUser function:', error);
           return { success: false, message: 'An error occurred while following the user' };
         }
-     }
+      }
+      
      async  createNotification(userId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string, message: string): Promise<void> {
       try {
           await Notification.create({
@@ -277,7 +284,7 @@ export class UserRepository implements IUserRepository {
 
     async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
     return Notification.find({ userId: userId }).populate({
-        path: 'userId',
+        path: 'sourceId',
         select: 'name image', 
       }).exec(); 
     }
@@ -540,8 +547,7 @@ export class UserRepository implements IUserRepository {
         commentIndex: number,
       ): Promise<{ success: boolean; message: string; populatedPost?:any}> {
         try {
-          console.log('Post ID and comment index in repo:', postId, commentIndex);
-      
+        
           const post = await Post.findById(postId);
       
           if (!post) {
@@ -700,4 +706,11 @@ export class UserRepository implements IUserRepository {
     throw error;
   }
 };
+async resetNotification(userId: mongoose.Types.ObjectId): Promise<void> {
+  await Notification.updateMany(
+      { userId, isRead: false }, 
+      { $set: { isRead: true } }
+  );
+}
+
 }

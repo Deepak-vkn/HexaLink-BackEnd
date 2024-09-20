@@ -525,6 +525,18 @@ export class UserUseCase {
             };
         }
     }
+    async resetNotificationCountUseCase(userId: mongoose.Types.ObjectId): Promise<void> {
+        try {
+            const notifications = await this.userRepository.fetchNotifications(userId);
+    
+            if (notifications.length > 0) {
+              
+             await this.userRepository.resetNotification(userId)
+            }
+        } catch (error) {
+            console.error('Error in fetchNotification service method:', error);
+        }
+    }
      async unFollowUser(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
         try {
 

@@ -1,12 +1,13 @@
 import { Server } from 'socket.io';
 import http from 'http';
-import { sendMessage } from '../../Adapters/userControll'; // Import your conversation service
+import { sendMessage,followUserControll } from '../../Adapters/userControll'; // Import your conversation service
 
 // Array to keep track of online users and their socket IDs
 const onlineUsers: { userId: string; socketId: string }[] = [];
+let io: Server;
 
 export const initializeSocket = (httpServer: http.Server) => {
-  const io = new Server(httpServer, {
+   io = new Server(httpServer, {
     cors: {
       origin: 'http://localhost:5173', // Adjust as needed
       methods: ['GET', 'POST'],
@@ -32,7 +33,6 @@ export const initializeSocket = (httpServer: http.Server) => {
       try {
         const { conversationId, sendTo, sendBy, content } = messageData;
         const newMessage = await sendMessage(conversationId, sendTo, sendBy, content);
-    
         // Find the socket ID of the receiver
         const receiver = onlineUsers.find(user => user.userId === sendTo);
         if (receiver) {
@@ -58,16 +58,31 @@ export const initializeSocket = (httpServer: http.Server) => {
     
 
     // Handle disconnection
-    socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
-      // Remove the user from the online users list
-      const index = onlineUsers.findIndex(user => user.socketId === socket.id);
-      if (index !== -1) {
-        onlineUsers.splice(index, 1);
-        console.log('User removed from online list:', socket.id);
-      }
-    });
+    // socket.on('disconnect', () => {
+    //   console.log('User disconnected:', socket.id);
+    //   // Remove the user from the online users list
+    //   const index = onlineUsers.findIndex(user => user.socketId === socket.id);
+    //   if (index !== -1) {
+    //     onlineUsers.splice(index, 1);
+    //     console.log('User removed from online list:', socket.id);
+    //   }
+    // });
   });
 
   return io;
+};
+
+export const emitNotification = (followId: string, userId: string) => {
+  console.log('raeched mit nodfuction count')
+  // Check if the user is online
+  const receiver = onlineUsers.find(user => user.userId === followId);
+  if (receiver) {
+    console.log('user is in online',receiver.socketId)
+    io.to(receiver.socketId).emit('notificationUpdate', {
+      message: `${userId} sent you a follow request.`,
+      type: 'follow',
+    });
+  } else {
+    console.log(`User ${followId} is not online; notification not sent.`);
+  }
 };

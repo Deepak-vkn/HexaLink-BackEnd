@@ -11,7 +11,6 @@ const protect = async (req: Request, res: Response, next: NextFunction): Promise
   
     let token: string = req.cookies?.user;
 
-    console.log(token);
 
     if (token) {
         try {

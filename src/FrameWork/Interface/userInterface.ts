@@ -57,4 +57,5 @@ export interface IUserRepository {
       getMessagesForConversation(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
       getConversationById(convId: mongoose.Types.ObjectId): Promise< ConversationDocument| null >
       getMessages(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
+      resetNotification(userId: mongoose.Types.ObjectId):  Promise<void> 
 }
