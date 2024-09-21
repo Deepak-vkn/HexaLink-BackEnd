@@ -45,6 +45,7 @@ export interface IUserRepository {
     fetchSuggestions(userIds: mongoose.Types.ObjectId):Promise<UserDocument[]>;
     deleteComment(postId: mongoose.Types.ObjectId,commentIndex:number): Promise<{success: boolean; message: string; populatedPost?:any}>
     createNotification(userId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string, message: string): Promise<void>
+    removeAllNotifications(userId: mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string }>
     findOrCreateConversation(user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId): Promise<ConversationDocument>
     saveMessage(
         conversationId: mongoose.Types.ObjectId,

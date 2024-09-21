@@ -1,10 +1,9 @@
 import mongoose, { Schema, Document, ObjectId } from 'mongoose';
 import { Message } from '../../Domain/messageTypes';
 
-// TypeScript Interface for MessageDocument
+
 export interface MessageDocument extends Message, Document {}
 
-// Mongoose Schema for Message
 const MessageSchema: Schema = new Schema({
   conversationId: {
     type: Schema.Types.ObjectId,

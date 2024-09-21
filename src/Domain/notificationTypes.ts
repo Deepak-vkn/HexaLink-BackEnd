@@ -5,6 +5,7 @@ export interface Notification extends Document {
   type: string;
   message: string;
   sourceId: Types.ObjectId;
+  postId:  Types.ObjectId;
   isRead: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -411,13 +411,32 @@ export async function fetchNotificationControll(req: Request, res: Response): Pr
 
         const objectId = new mongoose.Types.ObjectId(userId);
         const result=await userUseCase.fetchNotification(objectId)
-
+  
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
         res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }
+
+export async function removeAllNotificationsUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,type } = req.query;
+        console.log('reched remove notfictio backend')
+        if (typeof userId !== 'string' || typeof type !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid user ID format' });
+            return;
+        }
+        const objectId = new mongoose.Types.ObjectId(userId);
+        const result=await userUseCase.removeAllNotificationsUseCase(objectId,type)
+    
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
 
 export async function fetchUserControll(req: Request, res: Response): Promise<void> {
   
@@ -581,7 +600,7 @@ export async function sendMessage(conversationId: string | undefined, sendTo: st
         let convId: mongoose.Types.ObjectId | undefined;
 
         if (conversationId) {
-            // Convert the conversationId to mongoose.Types.ObjectId if it is provided
+     
             convId = new mongoose.Types.ObjectId(conversationId);
         }
 
@@ -589,7 +608,7 @@ export async function sendMessage(conversationId: string | undefined, sendTo: st
         const receiveObjectId = new mongoose.Types.ObjectId(sendTo);
 
         if (!convId) {
-            // Find or create a new conversation if conversationId was not provided
+           
             const conversation = await userUseCase.findOrCreateConversationUseCase(sendObjectId, receiveObjectId);
             if (conversation) {
                 convId = conversation._id as mongoose.Types.ObjectId;
@@ -599,14 +618,14 @@ export async function sendMessage(conversationId: string | undefined, sendTo: st
         }
 
         if (convId) {
-            // Use the ObjectId for the conversation
+
             await userUseCase.saveMessageUseCase(convId, receiveObjectId, sendObjectId, content);
         } else {
             throw new Error("Conversation ID could not be determined.");
         }
     } catch (error) {
         console.error('Error sending message:', error);
-        // Handle error appropriately (e.g., throw error, log it, etc.)
+      
     }
   
 

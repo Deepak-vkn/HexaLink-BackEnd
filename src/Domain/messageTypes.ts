@@ -1,6 +1,6 @@
 import mongoose, { Document, ObjectId } from 'mongoose';
 
-// TypeScript Interface
+
 export interface Message  {
   conversationId: ObjectId;
   receiveTime: Date ; 

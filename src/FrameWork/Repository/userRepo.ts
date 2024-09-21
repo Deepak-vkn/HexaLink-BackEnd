@@ -226,17 +226,17 @@ export class UserRepository implements IUserRepository {
             existingFollow.status = 'approved';
             existingFollower.status = 'approved';
 
-            // Save changes before sending notifications
+      
             await userDoc.save();
             await followDoc.save();
-            // Create notification after follow is approved
-            await this.createNotification(userId, followId, 'follow', ` accepted your follow request.`);
+   
+            await this.createNotification(userId, followId, 'follow accept', ` accepted your follow request.`);
             console.log('rerched acept request')
             emitNotification(String(userId) , String(followId)); 
             return { success: true, message: 'Follow request accepted', followDoc };
           } else {
            
-            // If not already following, add the new followId with status 'requested'
+
             userDoc.following.push({
               id: followId as mongoose.Types.ObjectId,
               followTime: new Date(),
@@ -247,12 +247,12 @@ export class UserRepository implements IUserRepository {
               followTime: new Date(),
               status: 'requested'
             } as any);
-            // Save changes before sending notifications
+
             await userDoc.save();
             await followDoc.save();
       
-            // Create notification for sent follow request
-            await this.createNotification(followId, userId, 'follow', ` sent you a follow request.`);
+
+            await this.createNotification(followId, userId, 'follow request', ` sent you a follow request.`);
               emitNotification(String(followId) , String(userId)); 
             return { success: true, message: 'Follow request sent successfully', followDoc };
           }
@@ -262,32 +262,92 @@ export class UserRepository implements IUserRepository {
         }
       }
       
-     async  createNotification(userId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string, message: string): Promise<void> {
-      try {
-          await Notification.create({
-              userId,
-              type,
-              message,
-              sourceId,
-              isRead: false,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              redirectUrl: `/profile/${sourceId}`, // Adjust as needed
-              status: 'sent',
-          });
-      } catch (error) {
+      async createNotification(
+        userId: mongoose.Types.ObjectId,
+        sourceId: mongoose.Types.ObjectId,
+        type: string,
+        message: string,
+        postId?: mongoose.Types.ObjectId 
+      ): Promise<void> {
+        try {
+          let redirectUrl = '';
+      
+
+          if (type === 'like' && postId) {
+            redirectUrl = `/posts`; 
+          } else {
+            redirectUrl = `/profile/${sourceId}`; 
+          }
+      
+          const notificationData: any = {
+            userId,
+            type,
+            message,
+            sourceId,
+            isRead: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            redirectUrl,
+            status: 'sent',
+          };
+      
+          // Add postId to the notification if it exists
+          if (postId) {
+            notificationData.postId = postId;
+          }
+      
+          await Notification.create(notificationData); 
+        } catch (error) {
           console.error('Error in createNotification function:', error);
           throw new Error('Failed to create notification');
+        }
       }
-  }
+      
 
-
-    async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
-    return Notification.find({ userId: userId }).populate({
-        path: 'sourceId',
-        select: 'name image', 
-      }).exec(); 
+       
+  async  removeNotification(postOwnerId: mongoose.Types.ObjectId, sourceId: mongoose.Types.ObjectId, type: string): Promise<void> {
+    try {
+      await Notification.deleteOne({
+        userId: postOwnerId, 
+         sourceId,
+        type: 'like'
+    });
+    
+        
+    } catch (error) {
+        console.error('Error in deleting notficcation function:', error);
+        throw new Error('Failed to create notification');
     }
+}
+
+async removeAllNotifications(userId: mongoose.Types.ObjectId, type: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const result = await Notification.deleteMany({ userId, type });
+    if (result.deletedCount > 0) {
+      console.log('all notiftion have been removed')
+      return { success: true, message: `All notifications of type "${type}" for user ${userId} have been deleted.` };
+    } else {
+      return { success: false, message: `No notifications of type "${type}" found for user ${userId}.` };
+    }
+  } catch (error) {
+    console.error(`Error deleting notifications: ${error}`);
+    return { success: false, message: 'Could not delete notifications.' };
+  }
+}
+
+
+async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationDocument[]> {
+  return Notification.find({ userId: userId })
+    .populate({
+      path: 'sourceId', 
+      select: 'name image', 
+    })
+    .populate({
+      path: 'postId', 
+      select: 'images',
+    })
+    .exec();
+}
 
     async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; followDoc?: FollowDocument; }> {
     try {
@@ -336,17 +396,18 @@ export class UserRepository implements IUserRepository {
       
         const post = await Post.findById(postId)
         const userObjectId = new mongoose.Types.ObjectId(userId);
+        
         if (!post) {
             return { success: false, message: 'Post not found' };
         }
+        const postOwnerId = new mongoose.Types.ObjectId(post.userId.toString());
 
-        // Check if the user has already liked the post
         const existingLikeIndex = post.likes.findIndex(like => 
             like.userId.toString() === userObjectId.toString()  
           );
 
         if (existingLikeIndex !== -1) {
-            // If the user has already liked the post, remove the like
+
             post.likes.splice(existingLikeIndex, 1);
             await post.save();
 
@@ -364,9 +425,12 @@ export class UserRepository implements IUserRepository {
                 select: 'name image', 
             })
             .exec();
+
+            await this.removeNotification(postOwnerId,userObjectId,'like')
+            
             return { success: true, message: 'Like removed successfully', postDoc: populatedPost };
         } else {
-            // If the user hasn't liked the post yet, add the user's ID and the current timestamp to the likes array
+         
             post.likes.push({ userId:userObjectId, time: new Date() });
             await post.save();
             const populatedPost = await Post.findById(postId )
@@ -383,6 +447,10 @@ export class UserRepository implements IUserRepository {
                 select: 'name image', 
             })
             .exec();
+         
+          
+            await this.createNotification(postOwnerId, userObjectId, 'like', ` liked your post.`,post._id as mongoose.Types.ObjectId);
+            emitNotification(String(postOwnerId) , String(userObjectId)); 
             return { success: true, message: 'Post liked successfully', postDoc: populatedPost };
         }
     } catch (error) {
@@ -470,7 +538,7 @@ export class UserRepository implements IUserRepository {
         if (!post) {
             return { success: false, message: 'Post not found' };
         }
-        // Add the new comment to the comments array
+       
         post.comments.push({ userId: userObjectId, message, time: new Date() });
     
         await post.save();
@@ -489,8 +557,12 @@ export class UserRepository implements IUserRepository {
           select: 'name image', 
       })
       .exec();
-  
-        return { success: true, message: 'Comment added successfully', postDoc: populatedPost };
+
+
+      const postOwnerId = new mongoose.Types.ObjectId(post.userId.toString());
+      await this.createNotification(postOwnerId, userObjectId, 'comment', ` commenetd on  your post.`,post._id as mongoose.Types.ObjectId);
+      emitNotification(String(postOwnerId) , String(userObjectId)); 
+      return { success: true, message: 'Comment added successfully', postDoc: populatedPost };
     } catch (error) {
         console.error('Error in addComment function:', error);
         return { success: false, message: 'An error occurred while adding the comment' };
@@ -572,6 +644,7 @@ export class UserRepository implements IUserRepository {
         path: 'likes.userId',
         select: 'name image',
       });
+
           return { success: true, message: 'Comment deleted successfully', populatedPost };
         } catch (error) {
           console.error('Error deleting comment:', error);
@@ -580,22 +653,20 @@ export class UserRepository implements IUserRepository {
       }
 
       async findOrCreateConversation(user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId): Promise<ConversationDocument> {
-        // Try to find an existing conversation
+
         let conversation = await Conversation.findOne({
             $or: [
                 { user1: user1Id, user2: user2Id },
                 { user1: user2Id, user2: user1Id }
             ]
         })
-        .populate('user1', 'name image') // Populate user1 with name and image
-        .populate('user2', 'name image') // Populate user2 with name and image
+        .populate('user1', 'name image') 
+        .populate('user2', 'name image') 
         .exec();
-    
-        // If no conversation is found, create a new one
+
         if (!conversation) {
             conversation = await Conversation.create({ user1: user1Id, user2: user2Id });
-    
-            // Populate newly created conversation
+
             conversation = await Conversation.findById(conversation._id)
                 .populate('user1', 'name image')
                 .populate('user2', 'name image')
@@ -631,8 +702,7 @@ export class UserRepository implements IUserRepository {
       async  getUsersInConversationWith(currentUserId: string): Promise<mongoose.Types.ObjectId[]> {
         try {
             const userObjectId = new mongoose.Types.ObjectId(currentUserId);
-    
-            // Fetch all conversations where the current user is either user1 or user2
+
             const conversations = await Conversation.find({
                 $or: [
                     { user1: userObjectId },
@@ -640,9 +710,8 @@ export class UserRepository implements IUserRepository {
                 ]
             });
     
-            // Extract the user IDs that the current user has conversations with
             const userIds = conversations.map(conversation => {
-                // Convert user1 and user2 to string and compare with userObjectId
+
                 const user1Id = new mongoose.Types.ObjectId(conversation.user1.toString());
                 const user2Id = new mongoose.Types.ObjectId(conversation.user2.toString());
     

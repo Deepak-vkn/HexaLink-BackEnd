@@ -9,6 +9,7 @@ const NotificationSchema = new Schema<NotificationDocument>({
   type: { type: String, required: true },
   message: { type: String, required: true },
   sourceId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  postId: { type: Schema.Types.ObjectId, ref: 'Posts', default: null },
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

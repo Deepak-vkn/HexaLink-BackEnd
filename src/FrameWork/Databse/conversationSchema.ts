@@ -23,6 +23,9 @@ const ConversationSchema: Schema = new Schema({
     type: String, 
     default: '', 
   },
+  updatedAt: { 
+    type: Date, 
+    default: Date.now },
 });
 
 

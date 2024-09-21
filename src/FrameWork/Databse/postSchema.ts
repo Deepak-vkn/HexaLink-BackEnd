@@ -21,7 +21,7 @@ const PostsSchema: Schema = new Schema({
     userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
     comments: [CommentSchema],
     likes: [LikeSchema],
-    images: { type: [String], default: [] }, // Array of image URLs
+    images: { type: [String], default: [] }, 
     caption: { type: String, default: null },
     postAt: { type: Date, default: Date.now },
 });

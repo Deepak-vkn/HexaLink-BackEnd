@@ -673,6 +673,7 @@ export class UserUseCase {
             const conversation=await this.userRepository.getConversationById(conversationId)
             if(conversation){
                 conversation.lastMessage=content
+                conversation.updatedAt =new Date()
                await conversation.save()
             }
         }
@@ -689,7 +690,7 @@ export class UserUseCase {
     }
     async getMessage(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]> {
         try {
-            // Fetch messages using the repository method
+
             const messages = await this.userRepository.getMessages(conversationId);
             return messages;
         } catch (error) {
@@ -698,5 +699,15 @@ export class UserUseCase {
         }
     }
 
+    async removeAllNotificationsUseCase(userId: mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string }> {
+        try {
+            const messages = await this.userRepository.removeAllNotifications(userId,type);
+            return messages;
+        } catch (error) {
+            console.error('Error fetching conversations and messages:', error);
+            throw error;
+        }
+    }
+    
 
     }

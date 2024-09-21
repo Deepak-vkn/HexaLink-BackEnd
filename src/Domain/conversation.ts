@@ -5,4 +5,5 @@ export interface Conversation  {
     user2: ObjectId; 
     createdAt: Date;
     lastMessage?:string;
+    updatedAt: Date;
 }
