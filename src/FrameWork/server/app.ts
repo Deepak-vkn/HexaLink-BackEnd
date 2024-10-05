@@ -16,7 +16,8 @@ const server = http.createServer(app);
 
 connectDB();
 const corsOptions = {
-  origin: 'http://localhost:5173', 
+   origin: process.env.FRONTEND_URL,
+ // origin:'https://gsnj8j5b-5173.inc1.devtunnels.ms',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   allowedHeaders: 'Content-Type,Authorization'

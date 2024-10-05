@@ -6,6 +6,7 @@ export interface Message  {
   receiveTime: Date ; 
   sendTo: ObjectId ;  
   content: string;   
+  file: string;  
   sendBy: ObjectId ; 
   sendTime: Date ;    
   status: 'sent' | 'delivered' | 'read'; 

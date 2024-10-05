@@ -7,11 +7,9 @@ import generateToken  from '../FrameWork/utilits/userJwt';
 import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
 
 import fs from 'fs';
-// Initialize UserRepository and UserUseCase
+
 const userRepository: IUserRepository = new UserRepository();
 const userUseCase = new UserUseCase(userRepository);
-
-// Controller functions
 
 export async function registerUserController(req: Request, res: Response): Promise<void> {
     try {
@@ -211,16 +209,15 @@ export async function blockUserUserController(req: Request, res: Response): Prom
 
 
 export async function updateUserController (req:Request,res:Response) :Promise<void>{
-
+console.log('raeched bakend')
     const userUpdates = req.body;
     if (req.file) {
         userUpdates.image = req.file.path; 
-      
     }
     try {
         const result=await userUseCase.updateUser(userUpdates)
         res.json(result);
-        
+   
     } catch (error) {
         console.error('Error in updating user:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -230,11 +227,9 @@ export async function userPostControll(req: Request, res: Response) {
     try {
         const { caption, userId, images } = req.body;
 
-
         if (!caption || !userId) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
-
         let imageArray: string[] = [];
         if (Array.isArray(images)) {
  
@@ -595,7 +590,9 @@ export async function deleteCommentUserControll(req: Request, res: Response): Pr
 }
 
 
-export async function sendMessage(conversationId: string | undefined, sendTo: string, sendBy: string, content: string): Promise<void> {
+export async function sendMessage(conversationId: string | undefined,
+     sendTo: string, sendBy: string,content?: string, 
+     file?: string ): Promise<void> {
     try {
         let convId: mongoose.Types.ObjectId | undefined;
 
@@ -619,7 +616,7 @@ export async function sendMessage(conversationId: string | undefined, sendTo: st
 
         if (convId) {
 
-            await userUseCase.saveMessageUseCase(convId, receiveObjectId, sendObjectId, content);
+            await userUseCase.saveMessageUseCase(convId, receiveObjectId, sendObjectId, content,file);
         } else {
             throw new Error("Conversation ID could not be determined.");
         }
@@ -699,5 +696,62 @@ export async function resetNotificationCount(req: Request, res: Response): Promi
     }
 }
 
+export async function fileUpload(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId } = req.query;
+        if (typeof userId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid user ID format' });
+            return;
+        }
+
+        const objectId = new mongoose.Types.ObjectId(userId);
+        const result=await userUseCase.resetNotificationCountUseCase(objectId)
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
 
 
+
+export async function uploadFileController(req: Request, res: Response) {
+    console.log('Reached upload file');
+    try {
+        if (req.body.image) {
+
+            // // Use req.file.buffer if you're storing files in memory using multer
+            const fileBuffer = req.body.image;
+            // // Assuming your Cloudinary function can handle a buffer, you can pass it directly
+             const fileUrl = await uploadCloudinary(fileBuffer); 
+
+            console.log('File upload URL from Buffer:', fileUrl);
+
+            return res.json({ success: true, message: 'File uploaded successfully', fileUrl });
+        } else {
+            return res.status(400).json({ success: false, message: 'No file provided' });
+        }
+    } catch (error) {
+        console.error('Error in uploadFileController:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+
+export async function deleteMessageUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { messageId } = req.query; 
+        if (typeof messageId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid  message format' });
+            return;
+        }
+
+        const messageObjectId = new mongoose.Types.ObjectId(messageId);
+        
+        const result=await userUseCase.deleteMessageUseCase(messageObjectId)
+        console.log(result)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}

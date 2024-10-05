@@ -676,28 +676,49 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         return conversation as ConversationDocument;
     }
     
-      async  saveMessage(
-        conversationId: mongoose.Types.ObjectId,
-        sendTo: mongoose.Types.ObjectId,
-        sendBy: mongoose.Types.ObjectId,
-        content: string
-      ): Promise<{ success: boolean; message: string; data: MessageDocument }> {
-        const newMessage = await Message.create({
-          conversationId,
-          sendTo,
-          sendBy,
-          content,
-          sendTime: new Date(), 
-          status: 'sent', 
-        });
+    async saveMessage(
+      conversationId: mongoose.Types.ObjectId,
+      sendTo: mongoose.Types.ObjectId,
+      sendBy: mongoose.Types.ObjectId,
+      content?: string,
+      file?: string // Optional file parameter
+    ): Promise<{ success: boolean; message: string; data?: MessageDocument }> {
+
+      const messageData: any = {
+        conversationId,
+        sendTo,
+        sendBy,
+        sendTime: new Date(),
+        status: 'sent', // Default status
+      };
+    
+      // Conditionally add content or file if provided
+      if (content) {
+        messageData.content = content;
+      }
       
+      if (file) {
+        messageData.file = file; // Assuming your schema supports this field
+      }
+    
+      try {
+        // Save the message with the relevant fields
+        const newMessage = await Message.create(messageData);
+    
         return {
           success: true,
           message: 'Message sent successfully',
           data: newMessage,
         };
+      } catch (error) {
+        console.error('Error saving message:', error);
+        return {
+          success: false,
+          message: 'Error saving message',
+  
+        };
       }
-
+    }
 
       async  getUsersInConversationWith(currentUserId: string): Promise<mongoose.Types.ObjectId[]> {
         try {
@@ -775,11 +796,25 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
     throw error;
   }
 };
-async resetNotification(userId: mongoose.Types.ObjectId): Promise<void> {
+   async resetNotification(userId: mongoose.Types.ObjectId): Promise<void> {
   await Notification.updateMany(
       { userId, isRead: false }, 
       { $set: { isRead: true } }
   );
-}
+   }
+   async  deleteMessage(messageId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; }> {
+    try {
 
+      const deletedMessage = await Message.findByIdAndDelete(messageId);
+    
+      if (!deletedMessage) {
+        return { success: false, message: 'Message not found' };
+      }
+  
+      return { success: true, message: 'Message deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      return { success: false, message: 'Error deleting message' };
+    }
+  }
 }

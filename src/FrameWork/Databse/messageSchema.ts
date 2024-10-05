@@ -21,7 +21,11 @@ const MessageSchema: Schema = new Schema({
   },
   content: {
     type: String,
-    required: true,
+    default: null,
+  },
+  file: {
+    type: String,
+    default: null, 
   },
   sendBy: {
     type: Schema.Types.ObjectId,

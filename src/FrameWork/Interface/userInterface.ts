@@ -51,12 +51,14 @@ export interface IUserRepository {
         conversationId: mongoose.Types.ObjectId,
         sendTo: mongoose.Types.ObjectId,
         sendBy: mongoose.Types.ObjectId,
-        content: string
-      ): Promise<{ success: boolean; message: string; data: MessageDocument }>
+        content?: string,
+        file?:string
+      ): Promise<{ success: boolean; message: string; data?: MessageDocument }>
 
       getConversationsForUser(currentUserId: string): Promise<ConversationDocument[]>
       getMessagesForConversation(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
       getConversationById(convId: mongoose.Types.ObjectId): Promise< ConversationDocument| null >
       getMessages(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
       resetNotification(userId: mongoose.Types.ObjectId):  Promise<void> 
+      deleteMessage(messageId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> 
 }

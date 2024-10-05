@@ -665,14 +665,16 @@ export class UserUseCase {
         conversationId: mongoose.Types.ObjectId,
         sendTo: mongoose.Types.ObjectId,
         sendBy: mongoose.Types.ObjectId,
-        content: string
-      ): Promise<{ success: boolean; message: string; data: MessageDocument }>{
+        content?: string,
+        file?:string
+
+      ): Promise<{ success: boolean; message: string; data?: MessageDocument }>{
         
-        const result=await this.userRepository.saveMessage(conversationId,sendTo,sendBy,content)
+        const result=await this.userRepository.saveMessage(conversationId,sendTo,sendBy,content,file)
         if(result.success){
             const conversation=await this.userRepository.getConversationById(conversationId)
             if(conversation){
-                conversation.lastMessage=content
+                conversation.lastMessage = content ? content : (file ? 'File sent' : 'No content');  
                 conversation.updatedAt =new Date()
                await conversation.save()
             }
@@ -708,6 +710,19 @@ export class UserUseCase {
             throw error;
         }
     }
+
+    async deleteMessageUseCase(messageId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> {
+        try {
+    
+          const response = await this.userRepository.deleteMessage(messageId);
+    
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
     
 
     }
