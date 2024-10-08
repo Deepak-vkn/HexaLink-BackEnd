@@ -15,7 +15,8 @@ import {
     updatePostUserControll,deletePostUserControll,
     addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
     deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage,resetNotificationCount,
-    removeAllNotificationsUserControll,uploadFileController,deleteMessageUserControll
+    removeAllNotificationsUserControll,uploadFileController,deleteMessageUserControll,getUnreadMessageCountUserControll,
+    makeMessageReadUserController
 
 } from '../../Adapters/userControll'; 
 
@@ -63,5 +64,10 @@ router.get('/resetNotificationCount',resetNotificationCount)
 router.get('/removeAllNotifications',removeAllNotificationsUserControll)
 router.post('/uploadFile',uploadFileController);
 router.get('/deleteMessage',deleteMessageUserControll)
+router.get('/unReadMessage',getUnreadMessageCountUserControll)
+router.get('/makeMessageReadUseCase',makeMessageReadUserController)
+
+
+
 router.get('/verify-token',jwtVerifyUser)
 export default router;

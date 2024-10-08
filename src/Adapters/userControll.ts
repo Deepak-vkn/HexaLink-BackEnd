@@ -5,6 +5,7 @@ import { IUserRepository } from '../FrameWork/Interface/userInterface';
 import { UserRepository } from '../FrameWork/Repository/userRepo';
 import generateToken  from '../FrameWork/utilits/userJwt';
 import uploadCloudinary from '../FrameWork/utilits/cloudinaray';
+import {  updateMessageNotificationCount} from '../FrameWork/socket/socket'
 
 import fs from 'fs';
 
@@ -637,7 +638,7 @@ export async function  getConversationsAndMessages(req: Request, res: Response):
             return;
         }
         const result=await userUseCase.getConversationd(userId)
-
+        console.log(result)
         res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -739,7 +740,9 @@ export async function uploadFileController(req: Request, res: Response) {
 
 export async function deleteMessageUserControll(req: Request, res: Response): Promise<void> {
     try {
+    
         const { messageId } = req.query; 
+        console.log('message id is ',messageId)
         if (typeof messageId !== 'string' ) {
             res.status(400).json({ success: false, message: 'Invalid  message format' });
             return;
@@ -755,3 +758,56 @@ export async function deleteMessageUserControll(req: Request, res: Response): Pr
         res.status(500).json({ success: false, message: 'Error updating education' });
     }
 }
+
+
+export async function getUnreadMessageCountUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId } = req.query; 
+        if (typeof userId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid  message format' });
+            return;
+        }
+        
+        const result=await userUseCase.getUnreadMessageCountUseCase(userId)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function makeMessageReadUserController(req: Request, res: Response): Promise<void> {
+    try {
+        const { conversationId,userId } = req.query; 
+        if (typeof userId !== 'string' || typeof conversationId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid  format format' });
+            return;
+        }
+        const conversationObjectId = new mongoose.Types.ObjectId(conversationId);
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const result=await userUseCase.makeMessageReadUseCase(conversationObjectId,userObjectId)
+     
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function updateMessageCount(userId: string): Promise<{ success: boolean; count: number }> {
+    try {
+        const result = await userUseCase.getUnreadMessageCountUseCase(userId);
+        
+        if (result.success) {
+            console.log('Retrieved unread message count:', result.count);
+            return { success: true, count: result.count }; // Return the result with success and count
+        }
+    } catch (error) {
+        console.error('Error getting message count:', error);
+    }
+    
+    return { success: false, count: 0 }; // Return false if there was an error
+}
+ 
+

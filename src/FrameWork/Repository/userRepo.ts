@@ -10,7 +10,7 @@ import Follow,{ FollowDocument } from '../Databse/followSchema';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
 import Conversation,{ ConversationDocument } from '../Databse/conversationSchema';
 import  Message,{ MessageDocument } from '../Databse/messageSchema';
-import { emitNotification } from '../../FrameWork/socket/socket'
+import { emitNotification ,emitMessageNotification} from '../../FrameWork/socket/socket'
 export class UserRepository implements IUserRepository {
     
     async createUser(userData: Partial<UserDocument>): Promise<UserDocument> {
@@ -681,7 +681,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
       sendTo: mongoose.Types.ObjectId,
       sendBy: mongoose.Types.ObjectId,
       content?: string,
-      file?: string // Optional file parameter
+      file?: string ,
     ): Promise<{ success: boolean; message: string; data?: MessageDocument }> {
 
       const messageData: any = {
@@ -689,7 +689,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         sendTo,
         sendBy,
         sendTime: new Date(),
-        status: 'sent', // Default status
+        status: 'sent', 
       };
     
       // Conditionally add content or file if provided
@@ -704,6 +704,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
       try {
         // Save the message with the relevant fields
         const newMessage = await Message.create(messageData);
+        emitMessageNotification(String(sendTo)); 
     
         return {
           success: true,
@@ -817,4 +818,5 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
       return { success: false, message: 'Error deleting message' };
     }
   }
+
 }

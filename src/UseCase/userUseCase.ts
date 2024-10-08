@@ -674,22 +674,44 @@ export class UserUseCase {
         if(result.success){
             const conversation=await this.userRepository.getConversationById(conversationId)
             if(conversation){
-                conversation.lastMessage = content ? content : (file ? 'File sent' : 'No content');  
+                conversation.lastMessage = content ? content : (file ? file: 'No content');  
                 conversation.updatedAt =new Date()
                await conversation.save()
             }
         }
         return result
       }
-      async  getConversationd(currentUserId: string) {
+      async getConversationd(currentUserId: string) {
         try {
+            // Step 1: Fetch all conversations for the user
             const conversations = await this.userRepository.getConversationsForUser(currentUserId);
-            return conversations;
+    
+            // Step 2: Map over each conversation to fetch its messages and count "sent" status messages
+            const conversationDetailsWithSentCount = await Promise.all(conversations.map(async (conversation: any) => {
+                const conversationId = conversation._id;
+    
+                // Step 3: Fetch messages for the current conversation
+                const messages = await this.userRepository.getMessages(conversationId);
+    
+                // Step 4: Count the number of messages with status "sent"
+                const unreadCount = messages.filter((message: any) => message.status === 'sent'&& message.sendTo.toString() === currentUserId).length;
+    
+                // Step 5: Convert conversation to plain object and return with 'sentMessageCount'
+                return {
+                    ...conversation.toObject(),  // Convert Mongoose document to plain JS object
+                    unreadCount
+                };
+            }));
+    
+            // Return the conversations along with the count of sent messages
+            return conversationDetailsWithSentCount;
         } catch (error) {
             console.error('Error fetching conversations and messages:', error);
             throw error;
         }
     }
+    
+    
     async getMessage(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]> {
         try {
 
@@ -723,6 +745,68 @@ export class UserUseCase {
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
+
+      async getUnreadMessageCountUseCase(userId: string): Promise<any> {
+        try {
+            const conversations = await this.userRepository.getConversationsForUser(userId);
+    
+            let unreadCount = 0;
+    
+            // Loop over each conversation
+            for (const conversation of conversations) {
+                const conversationId = conversation._id as mongoose.Types.ObjectId
+               
+                // Get messages for each conversation
+                const messages = await this.userRepository.getMessages(conversationId);
+    
+                // Count the number of unread messages (status: 'sent')
+                const unreadMessages = messages.filter((message: any) => 
+                    message.status === 'sent' && message.sendTo.toString() === userId
+                );
+    
+                unreadCount += unreadMessages.length;
+            }
+            return { success: true, count: unreadCount };
+    
+        } catch (error) {
+            console.error('Error fetching conversations and messages:', error);
+            throw error;
+        }
+    }
+
+    async makeMessageReadUseCase(conversationId: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<any> {
+        try {
+
+            const messages = await this.userRepository.getMessages(conversationId);
+    
+    
+            const unreadMessages = messages.filter((message: any) => 
+                message.status === 'sent' && message.sendBy.toString() === userId.toString()
+            );
     
 
+            const updatedMessages = unreadMessages.map(async (message: any) => {
+                message.status = 'read';
+                await message.save();
+                return message;
+            });
+
+            await Promise.all(updatedMessages);
+
+            return {
+                success: true,
+                message: 'All unread messages sent by other users marked as read.',
+            };
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
+            throw error;
+        }
     }
+
+    
+    }
+    
+
+  
+
+    

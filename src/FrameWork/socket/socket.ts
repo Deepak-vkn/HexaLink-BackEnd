@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import http from 'http';
-import { sendMessage, followUserControll } from '../../Adapters/userControll';
+import { sendMessage, followUserControll,updateMessageCount } from '../../Adapters/userControll';
 
 const onlineUsers: { userId: string; socketId: string }[] = [];
 let io: Server;
@@ -63,6 +63,35 @@ export const initializeSocket = (httpServer: http.Server) => {
         callback({ success: false, error: 'Error sending message' });
       }
     });
+
+    socket.on('getLatestMessageCount', async ({ userId }) => {
+      console.log(`Received request for latest message count from user: ${userId}`);
+  
+      try {
+          // Call the function to update the message count
+          const result = await updateMessageCount(userId);
+          
+          // If the result is successful, send the count back to the client
+          if (result && result.success) {
+              console.log('Updated result count =', result.count);
+              const receiver = onlineUsers.find(user => user.userId === userId);
+            if (receiver) {
+              console.log('User is online', receiver.socketId);
+              io.to(receiver.socketId).emit('updateMessageCount', {
+            count:result.count
+              });
+            } else {
+    console.log(`User ${userId} is not online; notification not sent.`);
+  }
+              
+          } else {
+              console.log('Failed to retrieve the message count.');
+          }
+      } catch (error) {
+          console.error('Error in getLatestMessageCount:', error);
+      }
+  });
+  
 
     socket.on('userOnline', ({ userId, chatId }) => {
       console.log('Reached checking online');
@@ -136,5 +165,36 @@ export const emitNotification = (followId: string, userId: string) => {
     });
   } else {
     console.log(`User ${followId} is not online; notification not sent.`);
+  }
+};
+
+export const emitMessageNotification = (userId: string) => {
+  console.log('Reached emit  message Notification function');
+
+  const receiver = onlineUsers.find(user => user.userId === userId);
+  if (receiver) {
+    console.log('User is online', receiver.socketId);
+    io.to(receiver.socketId).emit('MessageCountUpdate', {
+      message: `${userId} sent you a message.`,
+      type: 'follow',
+    });
+  } else {
+    console.log(`User ${userId} is not online; notification not sent.`);
+  }
+};
+
+
+
+export const updateMessageNotificationCount = (userId: string,count:number) => {
+  console.log('Reached emit  message Notification function');
+
+  const receiver = onlineUsers.find(user => user.userId === userId);
+  if (receiver) {
+    console.log('User is online', receiver.socketId);
+    io.to(receiver.socketId).emit('updateMessageCount', {
+   count:count
+    });
+  } else {
+    console.log(`User ${userId} is not online; notification not sent.`);
   }
 };
