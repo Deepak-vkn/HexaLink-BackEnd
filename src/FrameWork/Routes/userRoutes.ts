@@ -16,7 +16,7 @@ import {
     addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
     deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage,resetNotificationCount,
     removeAllNotificationsUserControll,uploadFileController,deleteMessageUserControll,getUnreadMessageCountUserControll,
-    makeMessageReadUserController
+    makeMessageReadUserController,removeFollowerUserControll
 
 } from '../../Adapters/userControll'; 
 
@@ -50,6 +50,7 @@ router.post('/followUser',jwtVerifyUser, followUserControll);
 router.get('/fetchNotification',jwtVerifyUser,fetchNotificationControll)
 router.get('/fetchUser',jwtVerifyUser, fetchUserControll);
 router.post('/unFollowUser',jwtVerifyUser, unFollowUserControll);
+router.post('/removeFollower',jwtVerifyUser, removeFollowerUserControll);
 router.get('/likepost',jwtVerifyUser, likeUserControll);
 router.post('/updatePost',jwtVerifyUser, updatePostUserControll);
 router.get('/deletePost',jwtVerifyUser, deletePostUserControll);

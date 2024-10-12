@@ -68,10 +68,10 @@ export const initializeSocket = (httpServer: http.Server) => {
       console.log(`Received request for latest message count from user: ${userId}`);
   
       try {
-          // Call the function to update the message count
+          //update the message count
           const result = await updateMessageCount(userId);
           
-          // If the result is successful, send the count back to the client
+          // send the count back to the client
           if (result && result.success) {
               console.log('Updated result count =', result.count);
               const receiver = onlineUsers.find(user => user.userId === userId);

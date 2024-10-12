@@ -457,9 +457,26 @@ export async function fetchUserControll(req: Request, res: Response): Promise<vo
 export async function unFollowUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { userId,unfollowId} = req.body; 
+        console.log('userid is ',userId)
+        console.log('unfollow id  is ',unfollowId)
         
         const result=await userUseCase.unFollowUser(userId,unfollowId)
        
+         res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function removeFollowerUserControll(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,unfollowId} = req.body; 
+     
+        
+        const result=await userUseCase.removeFollower(userId,unfollowId)
+       console.log(result)
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -801,13 +818,13 @@ export async function updateMessageCount(userId: string): Promise<{ success: boo
         
         if (result.success) {
             console.log('Retrieved unread message count:', result.count);
-            return { success: true, count: result.count }; // Return the result with success and count
+            return { success: true, count: result.count }; 
         }
     } catch (error) {
         console.error('Error getting message count:', error);
     }
     
-    return { success: false, count: 0 }; // Return false if there was an error
+    return { success: false, count: 0 }; 
 }
  
 

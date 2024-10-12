@@ -541,8 +541,6 @@ export class UserUseCase {
         try {
 
           const response = await this.userRepository.unfollowUser(userId, unfollowId);
-  
-    
           return response;
       
         } catch (error) {
@@ -550,6 +548,19 @@ export class UserUseCase {
           return { success: false, message: 'An error occurred while following the user' };
         }
       }
+
+      async removeFollower(userId: mongoose.Types.ObjectId, unfollowId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string,followDoc?:FollowDocument }> {
+        try {
+
+          const response = await this.userRepository.removeFollower(userId, unfollowId);
+          return response;
+      
+        } catch (error) {
+          console.error('Error in followUser service method:', error);
+          return { success: false, message: 'An error occurred while following the user' };
+        }
+      }
+
 
        async likepost(postId: mongoose.Types.ObjectId,userId:string): Promise<{ success: boolean; message: string, postDoc?: PostDocument }> {
         try {
@@ -683,27 +694,25 @@ export class UserUseCase {
       }
       async getConversationd(currentUserId: string) {
         try {
-            // Step 1: Fetch all conversations for the user
+          
             const conversations = await this.userRepository.getConversationsForUser(currentUserId);
     
-            // Step 2: Map over each conversation to fetch its messages and count "sent" status messages
+           
             const conversationDetailsWithSentCount = await Promise.all(conversations.map(async (conversation: any) => {
                 const conversationId = conversation._id;
     
-                // Step 3: Fetch messages for the current conversation
+             
                 const messages = await this.userRepository.getMessages(conversationId);
     
-                // Step 4: Count the number of messages with status "sent"
                 const unreadCount = messages.filter((message: any) => message.status === 'sent'&& message.sendTo.toString() === currentUserId).length;
     
-                // Step 5: Convert conversation to plain object and return with 'sentMessageCount'
                 return {
-                    ...conversation.toObject(),  // Convert Mongoose document to plain JS object
+                    ...conversation.toObject(),  
                     unreadCount
                 };
             }));
     
-            // Return the conversations along with the count of sent messages
+            
             return conversationDetailsWithSentCount;
         } catch (error) {
             console.error('Error fetching conversations and messages:', error);
@@ -752,14 +761,14 @@ export class UserUseCase {
     
             let unreadCount = 0;
     
-            // Loop over each conversation
+          
             for (const conversation of conversations) {
                 const conversationId = conversation._id as mongoose.Types.ObjectId
                
-                // Get messages for each conversation
+               
                 const messages = await this.userRepository.getMessages(conversationId);
     
-                // Count the number of unread messages (status: 'sent')
+          
                 const unreadMessages = messages.filter((message: any) => 
                     message.status === 'sent' && message.sendTo.toString() === userId
                 );

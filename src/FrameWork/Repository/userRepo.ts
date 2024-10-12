@@ -351,7 +351,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
 
     async unfollowUser(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; followDoc?: FollowDocument; }> {
     try {
-       
+      
         const userDoc = await Follow.findOne({ userId });
         const followDoc = await Follow.findOne({ userId: followId });
 
@@ -390,6 +390,59 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         return { success: false, message: 'An error occurred while unfollowing the user' };
     }
     }
+  
+    async  removeFollower(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; }> {
+      try {
+          console.log('User ID:', userId);
+          console.log('Follower ID to remove:', followId);
+  
+          // Find the follow document for the user (who is being followed)
+          const followDoc = await Follow.findOne({ userId });
+  
+          if (!followDoc) {
+              return { success: false, message: 'Follow document not found for the user.' };
+          }
+  
+          // Find the follow document for the follower (who is following)
+          const followerDoc = await Follow.findOne({ userId: followId });
+  
+          if (!followerDoc) {
+              return { success: false, message: 'Follow document not found for the follower.' };
+          }
+  
+          // Remove followId from the followers array of the user
+          const updatedFollowers = followDoc.followers.filter(follow => follow.id.toString() !== followId.toString());
+  
+          if (updatedFollowers.length === followDoc.followers.length) {
+              return { success: false, message: 'Follower not found in the list.' };
+          }
+  
+          // Remove userId from the following array of the follower
+          const updatedFollowing = followerDoc.following.filter(follow => follow.id.toString() !== userId.toString());
+  
+          if (updatedFollowing.length === followerDoc.following.length) {
+              return { success: false, message: 'User not found in the following list of the follower.' };
+          }
+  
+          // Update both documents
+          followDoc.followers = updatedFollowers;
+          followerDoc.following = updatedFollowing;
+  
+          // Save both documents
+          await followDoc.save();
+          await followerDoc.save();
+  
+          console.log('Updated follow document for the user:', followDoc);
+          console.log('Updated following document for the follower:', followerDoc);
+  
+          return { success: true, message: 'Successfully removed follower and updated following list.' };
+      } catch (error) {
+          console.error('Error removing follower:', error);
+          return { success: false, message: 'Error removing follower.' };
+      }
+  }
+    
+        
 
     async   likepost(postId: mongoose.Types.ObjectId, userId: string): Promise<{ success: boolean; message: string; postDoc?: any }> {
     try {
@@ -692,17 +745,17 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         status: 'sent', 
       };
     
-      // Conditionally add content or file if provided
+      
       if (content) {
         messageData.content = content;
       }
       
       if (file) {
-        messageData.file = file; // Assuming your schema supports this field
+        messageData.file = file; 
       }
     
       try {
-        // Save the message with the relevant fields
+     
         const newMessage = await Message.create(messageData);
         emitMessageNotification(String(sendTo)); 
     
