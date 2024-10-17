@@ -2,13 +2,14 @@ import User, { UserDocument } from '../Databse/userSchema';
 import Otp, { OtpDocument } from '../Databse/otpSchema';
 import Token, { TokenDocument } from '../Databse/tokenSchema'; // Ensure this import is correct
 import { IUserRepository } from '../Interface/userInterface'; // Ensure correct path
-import mongoose,{ObjectId } from 'mongoose';
+import mongoose,{ObjectId, StringExpressionOperatorReturningNumber } from 'mongoose';
 import Post, { PostDocument } from '../Databse/postSchema';
 import Job,{ JobDocument } from '../Databse/jobSchema';
 import Application,{ ApplicationDocument } from '../Databse/applicationSchema';
 import Follow,{ FollowDocument } from '../Databse/followSchema';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
 import Conversation,{ ConversationDocument } from '../Databse/conversationSchema';
+import Save,{ SaveDocument } from '../Databse/saveSchema';
 import  Message,{ MessageDocument } from '../Databse/messageSchema';
 import { emitNotification ,emitMessageNotification} from '../../FrameWork/socket/socket'
 export class UserRepository implements IUserRepository {
@@ -231,7 +232,7 @@ export class UserRepository implements IUserRepository {
             await followDoc.save();
    
             await this.createNotification(userId, followId, 'follow accept', ` accepted your follow request.`);
-            console.log('rerched acept request')
+
             emitNotification(String(userId) , String(followId)); 
             return { success: true, message: 'Follow request accepted', followDoc };
           } else {
@@ -324,7 +325,7 @@ async removeAllNotifications(userId: mongoose.Types.ObjectId, type: string): Pro
   try {
     const result = await Notification.deleteMany({ userId, type });
     if (result.deletedCount > 0) {
-      console.log('all notiftion have been removed')
+     
       return { success: true, message: `All notifications of type "${type}" for user ${userId} have been deleted.` };
     } else {
       return { success: false, message: `No notifications of type "${type}" found for user ${userId}.` };
@@ -393,9 +394,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
   
     async  removeFollower(userId: mongoose.Types.ObjectId, followId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; }> {
       try {
-          console.log('User ID:', userId);
-          console.log('Follower ID to remove:', followId);
-  
+   
           // Find the follow document for the user (who is being followed)
           const followDoc = await Follow.findOne({ userId });
   
@@ -432,9 +431,7 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
           await followDoc.save();
           await followerDoc.save();
   
-          console.log('Updated follow document for the user:', followDoc);
-          console.log('Updated following document for the follower:', followerDoc);
-  
+     
           return { success: true, message: 'Successfully removed follower and updated following list.' };
       } catch (error) {
           console.error('Error removing follower:', error);
@@ -872,4 +869,139 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
     }
   }
 
+   async  saveItem(
+    userId: mongoose.Types.ObjectId,   
+    targetId: mongoose.Types.ObjectId, 
+    type: string                     
+  ): Promise<{ success: boolean; message: string; }> {
+  
+    const validTypes = ['Posts', 'Jobs'];
+    if (!validTypes.includes(type)) {
+      return {
+        success: false,
+        message: 'Invalid type. It must be either Post or Job.',
+      };
+    }
+  
+    try {
+
+      const existingSave = await Save.findOne({ userId, targetId, type });
+      
+      if (existingSave) {
+       
+        await Save.deleteOne({ userId, targetId, type });
+        return {
+          success: true,
+          message: 'Item removed from saved items.',
+        };
+      }
+      
+      const saveData = {
+        userId,
+        targetId,
+        type,
+        savedDate: new Date(),  
+      };
+  
+      await Save.create(saveData);
+  
+      return {
+        success: true,
+        message: 'Item saved successfully.',
+      };
+    } catch (error) {
+      console.error('Error saving/removing item:', error);
+      return {
+        success: false,
+        message: 'Error processing the save action.',
+      };
+    }
+  }
+  
+  async fetchSavedItems(
+    userId: mongoose.Types.ObjectId,
+    type: string
+  ): Promise<{ success: boolean; message: string; savedDoc?: any[] }> {
+    try {
+      let savedItems: any[] | null = null; 
+  
+      if (type === 'Posts') {
+        
+        savedItems = await Save.find({ userId, type })
+          .populate({
+            path: 'targetId', // Populate targetId (e.g., Post or Job)
+            populate: {
+              path: 'userId', // Inside targetId, also populate userId
+              model: 'User',
+              select: 'name image', // Only select name and image from User
+            },
+          })
+          .lean() // Use lean() to convert to plain JS objects
+          .exec();
+  
+        // Manually store the original targetId
+        savedItems.forEach(item => {
+          item.originalTargetId = item.targetId?._id || item.targetId; // Use optional chaining to avoid undefined errors
+        });
+      } else {
+        // For other types, just populate targetId
+        savedItems = await Save.find({ userId, type })
+          .populate('targetId')
+          .lean()
+          .exec();
+      }
+  
+      if (!savedItems || savedItems.length === 0) {
+        return { success: false, message: 'No saved items found for this user.' };
+      }
+  
+      return {
+        success: true,
+        message: 'Saved items retrieved successfully.',
+        savedDoc: savedItems,
+      };
+    } catch (error) {
+      console.error('Error fetching saved items:', error);
+      return { success: false, message: 'Error fetching saved items.' };
+    }
+  }
+  
+
+  async checkSaved(userId: mongoose.Types.ObjectId, targetId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string; }> {
+    try { 
+      const savedItem = await Save.findOne({ userId, targetId });
+      if (savedItem) { 
+        return { success: true, message: 'Item is already saved.' };
+      }
+      return { success: false, message: 'Item is not saved.' };
+    } catch (error) {
+      console.error('Error checking saved item:', error);
+      return { success: false, message: 'Error occurred while checking saved status.' };
+    }
+  }
+
+
+  async fetchSinglePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; post: PostDocument | null }> {
+    try {
+      const postDoc = await Post.findOne({ _id: postId })
+        .populate({
+          path: 'userId',
+          select: 'name image',
+        })
+        .populate({
+          path: 'comments.userId',
+          select: 'name image',
+        })
+        .populate({
+          path: 'likes.userId',
+          select: 'name image',
+        })
+        .exec();
+  
+      return { success: true, post: postDoc }; // postDoc can be null if no post is found
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      return { success: false, post: null }; // Return null for post on error
+    }
+  }
 }

@@ -16,7 +16,7 @@ import {
     addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
     deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage,resetNotificationCount,
     removeAllNotificationsUserControll,uploadFileController,deleteMessageUserControll,getUnreadMessageCountUserControll,
-    makeMessageReadUserController,removeFollowerUserControll
+    makeMessageReadUserController,removeFollowerUserControll,saveItems,fetchSavedItems,checkSaved,fetchSinglePostController
 
 } from '../../Adapters/userControll'; 
 
@@ -67,6 +67,12 @@ router.post('/uploadFile',uploadFileController);
 router.get('/deleteMessage',deleteMessageUserControll)
 router.get('/unReadMessage',getUnreadMessageCountUserControll)
 router.get('/makeMessageReadUseCase',makeMessageReadUserController)
+router.get('/saveItems',saveItems)
+router.get('/fetchsaveItems',fetchSavedItems)
+router.get('/checkSaved',checkSaved)
+router.get('/fetchSinglePost',fetchSinglePostController)
+
+
 
 
 

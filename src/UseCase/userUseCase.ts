@@ -14,6 +14,7 @@ import { FollowDocument } from '../FrameWork/Databse/followSchema';
 import { NotificationDocument } from '../FrameWork/Databse/notificationSchema';
 import { ConversationDocument } from '../FrameWork/Databse/conversationSchema';
 import { MessageDocument } from '../FrameWork/Databse/messageSchema';
+import { SaveDocument } from '../FrameWork/Databse/saveSchema';
 export class UserUseCase {
     private userRepository: IUserRepository;
     private transporter: nodemailer.Transporter;
@@ -567,8 +568,6 @@ export class UserUseCase {
         
           const response = await this.userRepository.likepost(postId,userId);
         
-      
-
           return response;
       
         } catch (error) {
@@ -811,6 +810,45 @@ export class UserUseCase {
             throw error;
         }
     }
+
+    async saveItemsUsecase(userId: mongoose.Types.ObjectId,targetId:mongoose.Types.ObjectId, type: string): Promise<any> {
+        try {
+            const result = await this.userRepository.saveItem(userId,targetId,type);
+            return result
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
+            throw error;
+        }
+    }
+    async fetchSavedItemsUseCase(userId: mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string ,savedDoc?: any[]}>  {
+        try {
+            const result = await this.userRepository.fetchSavedItems(userId,type);
+            return result
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
+            throw error;
+        }
+    }
+    async checkSavedUseCase(userId: mongoose.Types.ObjectId,targetId:mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }>  {
+        try {
+            const result = await this.userRepository.checkSaved(userId,targetId);
+            return result
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
+            throw error;
+        }
+    }
+
+    async fetchSinglePostUseCase(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; post: PostDocument | null }>{
+        try {
+            const result = await this.userRepository.fetchSinglePost(postId);
+            return result
+        } catch (error) {
+            console.error('Error marking messages as read:', error);
+            throw error;
+        }
+
+    } 
 
     
     }

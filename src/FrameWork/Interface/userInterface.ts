@@ -9,7 +9,7 @@ import Conversation,{ ConversationDocument } from '../Databse/conversationSchema
 import mongoose from 'mongoose';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
 import Message,{ MessageDocument } from '../Databse/messageSchema';
-
+import Save,{ SaveDocument } from '../Databse/saveSchema';
 
 export interface IUserRepository {
     createUser(userData: Partial<UserDocument>): Promise<UserDocument>;
@@ -61,5 +61,9 @@ export interface IUserRepository {
       getConversationById(convId: mongoose.Types.ObjectId): Promise< ConversationDocument| null >
       getMessages(conversationId: mongoose.Types.ObjectId): Promise<MessageDocument[]>
       resetNotification(userId: mongoose.Types.ObjectId):  Promise<void> 
-      deleteMessage(messageId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> 
+      deleteMessage(messageId: mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }>
+      saveItem(userId: mongoose.Types.ObjectId,targetId:mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string }> 
+      fetchSavedItems(userId: mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string ,savedDoc?: any[]}> 
+      checkSaved(userId: mongoose.Types.ObjectId,targetId:mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> 
+      fetchSinglePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; post: PostDocument | null }>
 }

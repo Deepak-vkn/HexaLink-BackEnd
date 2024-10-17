@@ -210,7 +210,7 @@ export async function blockUserUserController(req: Request, res: Response): Prom
 
 
 export async function updateUserController (req:Request,res:Response) :Promise<void>{
-console.log('raeched bakend')
+
     const userUpdates = req.body;
     if (req.file) {
         userUpdates.image = req.file.path; 
@@ -418,7 +418,7 @@ export async function fetchNotificationControll(req: Request, res: Response): Pr
 export async function removeAllNotificationsUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { userId,type } = req.query;
-        console.log('reched remove notfictio backend')
+      
         if (typeof userId !== 'string' || typeof type !== 'string') {
             res.status(400).json({ success: false, message: 'Invalid user ID format' });
             return;
@@ -457,8 +457,7 @@ export async function fetchUserControll(req: Request, res: Response): Promise<vo
 export async function unFollowUserControll(req: Request, res: Response): Promise<void> {
     try {
         const { userId,unfollowId} = req.body; 
-        console.log('userid is ',userId)
-        console.log('unfollow id  is ',unfollowId)
+  
         
         const result=await userUseCase.unFollowUser(userId,unfollowId)
        
@@ -476,7 +475,7 @@ export async function removeFollowerUserControll(req: Request, res: Response): P
      
         
         const result=await userUseCase.removeFollower(userId,unfollowId)
-       console.log(result)
+      
          res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -655,7 +654,7 @@ export async function  getConversationsAndMessages(req: Request, res: Response):
             return;
         }
         const result=await userUseCase.getConversationd(userId)
-        console.log(result)
+   
         res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -733,7 +732,7 @@ export async function fileUpload(req: Request, res: Response): Promise<void> {
 
 
 export async function uploadFileController(req: Request, res: Response) {
-    console.log('Reached upload file');
+
     try {
         if (req.body.image) {
 
@@ -742,8 +741,7 @@ export async function uploadFileController(req: Request, res: Response) {
             // // Assuming your Cloudinary function can handle a buffer, you can pass it directly
              const fileUrl = await uploadCloudinary(fileBuffer); 
 
-            console.log('File upload URL from Buffer:', fileUrl);
-
+           
             return res.json({ success: true, message: 'File uploaded successfully', fileUrl });
         } else {
             return res.status(400).json({ success: false, message: 'No file provided' });
@@ -759,7 +757,7 @@ export async function deleteMessageUserControll(req: Request, res: Response): Pr
     try {
     
         const { messageId } = req.query; 
-        console.log('message id is ',messageId)
+
         if (typeof messageId !== 'string' ) {
             res.status(400).json({ success: false, message: 'Invalid  message format' });
             return;
@@ -768,7 +766,7 @@ export async function deleteMessageUserControll(req: Request, res: Response): Pr
         const messageObjectId = new mongoose.Types.ObjectId(messageId);
         
         const result=await userUseCase.deleteMessageUseCase(messageObjectId)
-        console.log(result)
+      
         res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
@@ -817,7 +815,7 @@ export async function updateMessageCount(userId: string): Promise<{ success: boo
         const result = await userUseCase.getUnreadMessageCountUseCase(userId);
         
         if (result.success) {
-            console.log('Retrieved unread message count:', result.count);
+       
             return { success: true, count: result.count }; 
         }
     } catch (error) {
@@ -828,3 +826,75 @@ export async function updateMessageCount(userId: string): Promise<{ success: boo
 }
  
 
+
+export async function saveItems(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,targetId,type} = req.query; 
+        console.log( userId,targetId,type)
+        if (typeof userId !== 'string' || typeof type !== 'string'|| typeof targetId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid  format format' });
+            return;
+        }
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const targetObjectId = new mongoose.Types.ObjectId(targetId);
+        const result=await userUseCase.saveItemsUsecase(userObjectId,targetObjectId,type)
+     console.log(result)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+export async function fetchSavedItems(req: Request, res: Response): Promise<void> {
+    try {
+        const { userId,type} = req.query; 
+        if (typeof userId !== 'string' || typeof type !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid  format format' });
+            return;
+        }
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const result=await userUseCase.fetchSavedItemsUseCase(userObjectId,type)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+
+export async function checkSaved(req: Request, res: Response): Promise<void> {
+    try {
+
+        const { userId,targetId} = req.query; 
+        if (typeof userId !== 'string' ||  typeof targetId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid  format format' });
+            return;
+        }
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const targetObjectId = new mongoose.Types.ObjectId(targetId);
+        const result=await userUseCase.checkSavedUseCase(userObjectId,targetObjectId)
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+
+export async function fetchSinglePostController(req: Request, res: Response): Promise<void> {
+    try {
+        const { postId} = req.query; 
+        if (typeof postId !== 'string') {
+            res.status(400).json({ success: false, message: 'Invalid  format format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        const result=await userUseCase.fetchSinglePostUseCase(postObjectId)
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating education:', error);
+        res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
