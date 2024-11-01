@@ -198,12 +198,12 @@ export class UserRepository implements IUserRepository {
     async  fetchFollow(userId: mongoose.Types.ObjectId): Promise<any | null> {
         return Follow.findOne({ userId: userId })
           .populate({
-            path: 'following.id', // Populating the `id` field in `following`
-            select: 'name image', // Selecting only `name` and `image` fields from the User model
+            path: 'following.id', 
+            select: 'name image', 
           })
           .populate({
-            path: 'followers.id', // Populating the `id` field in `followers`
-            select: 'name image', // Selecting only `name` and `image` fields from the User model
+            path: 'followers.id', 
+            select: 'name image', 
           })
           .exec();
       }
@@ -929,22 +929,21 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         
         savedItems = await Save.find({ userId, type })
           .populate({
-            path: 'targetId', // Populate targetId (e.g., Post or Job)
+            path: 'targetId', 
             populate: {
-              path: 'userId', // Inside targetId, also populate userId
+              path: 'userId', 
               model: 'User',
-              select: 'name image', // Only select name and image from User
+              select: 'name image', 
             },
           })
-          .lean() // Use lean() to convert to plain JS objects
+          .lean()
           .exec();
   
-        // Manually store the original targetId
         savedItems.forEach(item => {
-          item.originalTargetId = item.targetId?._id || item.targetId; // Use optional chaining to avoid undefined errors
+          item.originalTargetId = item.targetId?._id || item.targetId;
         });
       } else {
-        // For other types, just populate targetId
+       
         savedItems = await Save.find({ userId, type })
           .populate('targetId')
           .lean()
@@ -998,10 +997,21 @@ async fetchNotifications(userId: mongoose.Types.ObjectId): Promise<NotificationD
         })
         .exec();
   
-      return { success: true, post: postDoc }; // postDoc can be null if no post is found
+      return { success: true, post: postDoc }; 
     } catch (error) {
       console.error('Error fetching post:', error);
-      return { success: false, post: null }; // Return null for post on error
+      return { success: false, post: null }; 
     }
   }
+
+
+  async fetchUserApplicationRepository(userId: mongoose.Types.ObjectId): Promise<ApplicationDocument[] | null> {
+
+    return Application.find({ userId })
+    .sort({ appliedDate: -1 })
+    .populate('jobId')  
+    .exec();
 }
+}
+
+

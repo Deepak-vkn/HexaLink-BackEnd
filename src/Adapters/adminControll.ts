@@ -54,3 +54,16 @@ export async function fetchCompanyAdminControll(req:Request,res:Response):Promis
     }
 }
 
+
+export async function adminDashBoard(req:Request,res:Response):Promise<void>{
+
+    try {
+        const result =await adminUseCase.adminDashBoard()
+        console.log(result)
+        res.json(result);
+        
+    } catch (error) {
+        console.error('Error fetching company',error)
+        res.status(500).json({success:false,message:'Failed to load users'})
+    }
+}

@@ -290,3 +290,20 @@ export async function updateApplicationStatusUserControll(req: Request, res: Res
         res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
     }
 }
+
+export async function companyDashBoard(req: Request, res: Response): Promise<void> {
+    let { companyId } = req.query; 
+
+    try {
+        if (typeof companyId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(companyId);
+        const result = await companyUseCase.companyDashBoardUseCase(postObjectId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
+    }
+}

@@ -264,6 +264,7 @@ public async createJobService(jobData: Partial<JobDocument>): Promise<{ success:
 }
 
 public async fetchJobs(companyId: mongoose.Types.ObjectId, sortBy: string): Promise<{ success: boolean; message: string; jobs: JobDocument[] }> {
+  console.log(sortBy)
   try {
       const jobs = await this.companyRepo.fetchJobsRepository(companyId, sortBy);
 
@@ -318,7 +319,6 @@ public async fetchCompanyApplicationsUseCase(companyId: mongoose.Types.ObjectId)
         message: 'No applications found for the given company',
       };
     }
-
     return {
       success: true,
       message: 'Applications fetched successfully',
@@ -346,6 +346,78 @@ public async fetchCompanyApplicationsUseCase(companyId: mongoose.Types.ObjectId)
     };
   }
 }
+
+public async companyDashBoardUseCase(companyId: mongoose.Types.ObjectId): Promise<any> {
+  try {
+    // Fetch all jobs and applications for the company
+    const jobs = await this.companyRepo.fetchJobsRepository(companyId, 'all');
+    const applications = await this.companyRepo.fetchCompanyApplications(companyId);
+
+    // Calculate total and active job counts
+    const totalJobCount = jobs?.length;
+    const activeJobCount = jobs?.filter(job => job.status === 'active').length;
+  
+    // Fetch the total application count by querying the Application model
+    const totalApplicationCount = applications?.length
+    const latestJobs = jobs?.sort((a, b) => new Date(b.posted).getTime() - new Date(a.posted).getTime()) // Sort in descending order
+    .slice(0, 5); // Get the top 5 jobs
+    
+
+    const latestApplications = applications
+    .sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()) // Sort in descending order
+    .slice(0, 5); // Get the top 5 applications
+
+
+
+
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+  
+    const jobStatsByMonth: { [key: string]: number } = {};
+    const applicationStatsByMonth: { [key: string]: number } = {};
+
+
+    months.forEach(month => {
+      jobStatsByMonth[month] = 0;
+      applicationStatsByMonth[month] = 0;
+    });
+
+    // Calculate jobs per month
+    jobs?.forEach(job => {
+      const jobMonthIndex = new Date(job.posted).getMonth(); 
+      jobStatsByMonth[months[jobMonthIndex]]++;
+    });
+
+    // Calculate applications per month
+    applications.forEach(application => {
+      const applicationMonthIndex = new Date(application.appliedDate).getMonth();
+      applicationStatsByMonth[months[applicationMonthIndex]]++;
+    });
+
+    // Prepare result array for chart
+    const monthlyStats = months.map(month => ({
+      month,
+      jobCount: jobStatsByMonth[month],
+      applicationCount: applicationStatsByMonth[month]
+    }));
+
+    
+    return {
+        totalJobCount,
+        activeJobCount,
+        totalApplicationCount,latestJobs,latestApplications,monthlyStats
+    };
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    return { success: false, message: 'Error fetching dashboard data', data: null };
+  }
+}
+
+
 
 
 }

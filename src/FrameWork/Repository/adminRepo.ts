@@ -3,7 +3,7 @@ import Admin, { AdminDocument } from '../Databse/adminSchema';
 import Company,{ CompanyDocument } from '../Databse/companySchema';
 import User,{ UserDocument } from '../Databse/userSchema';
 import { IAdminRepository } from '../Interface/adminInterface';
-
+import Job,{ JobDocument } from '../Databse/jobSchema';
 export class AdminRepository implements IAdminRepository {
     async findAdminByEmail(email: string): Promise<AdminDocument | null> {
         return Admin.findOne({ email }).exec();
@@ -22,4 +22,9 @@ export class AdminRepository implements IAdminRepository {
     async fetchCompany(): Promise<CompanyDocument[]> {
         return Company.find()
     }
+
+    async fetchJobs(): Promise<JobDocument[] > {
+        return Job.find().sort({ createdAt: -1 }).exec();
+    }
+    
 }

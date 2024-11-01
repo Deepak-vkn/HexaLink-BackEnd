@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import Notification,{NotificationDocument} from '../Databse/notificationSchema';
 import Message,{ MessageDocument } from '../Databse/messageSchema';
 import Save,{ SaveDocument } from '../Databse/saveSchema';
+import Appliaction,{ApplicationDocument} from '../Databse/applicationSchema';
 
 export interface IUserRepository {
     createUser(userData: Partial<UserDocument>): Promise<UserDocument>;
@@ -66,4 +67,5 @@ export interface IUserRepository {
       fetchSavedItems(userId: mongoose.Types.ObjectId,type:string): Promise<{ success: boolean; message: string ,savedDoc?: any[]}> 
       checkSaved(userId: mongoose.Types.ObjectId,targetId:mongoose.Types.ObjectId): Promise<{ success: boolean; message: string }> 
       fetchSinglePost(postId: mongoose.Types.ObjectId): Promise<{ success: boolean; post: PostDocument | null }>
+      fetchUserApplicationRepository(userId: mongoose.Types.ObjectId): Promise<ApplicationDocument[] | null>
 }

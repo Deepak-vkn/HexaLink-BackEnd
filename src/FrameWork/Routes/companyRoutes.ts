@@ -5,7 +5,7 @@ import protectCompany from '../utilits/jwtVerifycCompany';
 import {registerCompanyController,verifyOtpCompanyController,
     loginCompanyController,resendOtpCompanyController,
     resetPasswordCompanyController,forgetPasswordCompanyController,blockUserCompanyController,createJobController,fetchJobsController
-    ,updateJobController,fetchCompanyApplicationsUseCase,updateApplicationStatusUserControll
+    ,updateJobController,fetchCompanyApplicationsUseCase,updateApplicationStatusUserControll,companyDashBoard
 } from '../../Adapters/companyControll'
 
 const router = express.Router();
@@ -22,6 +22,11 @@ router.post('/fetchJobs',protectCompany,fetchJobsController)
 router.post('/updateJob/:jobId',protectCompany,updateJobController)
 router.get('/fetchApplications',protectCompany,fetchCompanyApplicationsUseCase)
 router.get('/updateApplicationStatus',protectCompany,updateApplicationStatusUserControll)
+router.get('/companyDashBoard',protectCompany,companyDashBoard)
+
+
+
+
 router.get('/verify-token',protectCompany)
 
 export default router;

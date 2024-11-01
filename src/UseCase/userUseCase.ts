@@ -850,6 +850,100 @@ export class UserUseCase {
 
     } 
 
+    async userDashBoard(userId: mongoose.Types.ObjectId): Promise<any> {
+        try {
+      // follow, posts, and applications data
+            const follow = await this.userRepository.fetchFollow(userId);
+            const posts = await this.userRepository.getUserPosts(userId);
+            const applications = await this.userRepository.fetchUserApplicationRepository(userId);
+    
+            //  total counts
+            const totalApplicationsCount = applications ? applications.length : 0;
+            const totalPostsCount = posts ? posts.length : 0;
+            const totalFollowersCount = follow.followers ? follow.followers.length : 0;
+            const totalFollowingCount = follow.following ? follow.following.length : 0;
+    
+            // top 5 most recent followers
+            const top5RecentFollowers = follow.followers
+                .sort((a: any, b: any) => b.followTime.getTime() - a.followTime.getTime())
+                .slice(0, 10);
+    
+            //  monthly statistics
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+    
+            const postStatsByMonth: { [key: string]: number } = {};
+            const followerStatsByMonth: { [key: string]: number } = {};
+            const followingStatsByMonth: { [key: string]: number } = {};
+            const applicationStatsByMonth: { [key: string]: number } = {};
+    
+        
+            months.forEach(month => {
+                postStatsByMonth[month] = 0;
+                followerStatsByMonth[month] = 0;
+                followingStatsByMonth[month] = 0;
+                applicationStatsByMonth[month] = 0;
+            });
+    
+            //  posts per month
+            posts?.forEach(post => {
+                if (post.postAt) { 
+                    const postMonthIndex = new Date(post.postAt).getMonth(); 
+                    postStatsByMonth[months[postMonthIndex]]++;
+                }
+            });
+    
+            //  followers per month
+            follow.followers.forEach((follower: any) => {
+                const followerMonthIndex = new Date(follower.followTime).getMonth();
+                followerStatsByMonth[months[followerMonthIndex]]++;
+            });
+            //  following per month
+            follow.following.forEach((following:any) => {
+                const followingMonthIndex = new Date(following.followTime).getMonth();
+                followingStatsByMonth[months[followingMonthIndex]]++;
+            });
+    
+            //  applications per month
+            applications?.forEach(application => {
+                const applicationMonthIndex = new Date(application.appliedDate).getMonth();
+                applicationStatsByMonth[months[applicationMonthIndex]]++;
+            });
+    
+            //  result array for chart
+            const monthlyStats = months.map(month => ({
+                month,
+                postCount: postStatsByMonth[month],
+                followerCount: followerStatsByMonth[month],
+                followingCount: followingStatsByMonth[month],
+                applicationCount: applicationStatsByMonth[month],
+            }));
+
+            const shortlistedApplicationsCount = applications?.filter(app => app.status === 'Shortlisted').length || 0;
+            const rejectedApplicationsCount = applications?.filter(app => app.status === 'Rejected').length || 0;
+            
+            const dashboardData = {
+                totalApplicationsCount,
+                totalPostsCount,
+                totalFollowersCount,
+                totalFollowingCount,
+                top5RecentFollowers,
+                monthlyStats,
+                applications,
+                shortlistedApplicationsCount,
+                rejectedApplicationsCount
+            };
+            return dashboardData;
+    
+        } catch (error) {
+            console.error('Error fetching user dashboard data:', error);
+            throw error;
+        }
+    }
+    
+   
     
     }
     

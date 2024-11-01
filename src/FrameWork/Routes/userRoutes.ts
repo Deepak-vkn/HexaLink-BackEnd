@@ -1,6 +1,9 @@
 import express from 'express';
 import multer from 'multer';
 import jwtVerifyUser from '../utilits/jwtVerifyUser'
+import roleCheck from '../utilits/rolecheck';
+
+
 import { 
     registerUserController,verifyOtpUserController,  
     loginUserController,resendOtpUserController, 
@@ -16,7 +19,7 @@ import {
     addCommentUserControll,fetchFollowingPosts,followSuggestionUserControll,
     deleteCommentUserControll,getConversationsAndMessages,createConversationUseCase,getMessage,resetNotificationCount,
     removeAllNotificationsUserControll,uploadFileController,deleteMessageUserControll,getUnreadMessageCountUserControll,
-    makeMessageReadUserController,removeFollowerUserControll,saveItems,fetchSavedItems,checkSaved,fetchSinglePostController
+    makeMessageReadUserController,removeFollowerUserControll,saveItems,fetchSavedItems,checkSaved,fetchSinglePostController,userDashBoard
 
 } from '../../Adapters/userControll'; 
 
@@ -57,21 +60,21 @@ router.get('/deletePost',jwtVerifyUser, deletePostUserControll);
 router.post('/postComment',jwtVerifyUser, addCommentUserControll);
 router.get('/fetchFollowingPosts',jwtVerifyUser, fetchFollowingPosts)
 router.get('/followSuggestion',followSuggestionUserControll)
-router.delete('/deleteComment',deleteCommentUserControll)
+router.delete('/deleteComment',jwtVerifyUser,deleteCommentUserControll)
 router.get('/messages',getConversationsAndMessages)
 router.get('/createConversation',createConversationUseCase)
 router.get('/getMessage',getMessage)
 router.get('/resetNotificationCount',resetNotificationCount)
 router.get('/removeAllNotifications',removeAllNotificationsUserControll)
 router.post('/uploadFile',uploadFileController);
-router.get('/deleteMessage',deleteMessageUserControll)
+router.get('/deleteMessage',jwtVerifyUser,deleteMessageUserControll)
 router.get('/unReadMessage',getUnreadMessageCountUserControll)
 router.get('/makeMessageReadUseCase',makeMessageReadUserController)
-router.get('/saveItems',saveItems)
-router.get('/fetchsaveItems',fetchSavedItems)
-router.get('/checkSaved',checkSaved)
-router.get('/fetchSinglePost',fetchSinglePostController)
-
+router.get('/saveItems',jwtVerifyUser,saveItems)
+router.get('/fetchsaveItems',jwtVerifyUser,fetchSavedItems)
+router.get('/checkSaved',jwtVerifyUser,checkSaved)
+router.get('/fetchSinglePost',jwtVerifyUser,fetchSinglePostController)
+router.get('/userdashBoard',userDashBoard)
 
 
 

@@ -592,8 +592,9 @@ export async function followSuggestionUserControll(req: Request, res: Response):
 
 export async function deleteCommentUserControll(req: Request, res: Response): Promise<void> {
     try {
+        console.log('reached delete commnt')
         const { postId, commentIndex } = req.body; 
-   
+   console.log(postId,commentIndex)
 
         const postObjectId = new mongoose.Types.ObjectId(postId);
         
@@ -891,10 +892,25 @@ export async function fetchSinglePostController(req: Request, res: Response): Pr
         }
         const postObjectId = new mongoose.Types.ObjectId(postId);
         const result=await userUseCase.fetchSinglePostUseCase(postObjectId)
-
         res.json(result);
     } catch (error) {
         console.error('Error updating education:', error);
         res.status(500).json({ success: false, message: 'Error updating education' });
+    }
+}
+
+export async function userDashBoard(req: Request, res: Response): Promise<void> {
+    let { userId } = req.query; 
+    try {
+        if (typeof userId !== 'string' ) {
+            res.status(400).json({ success: false, message: 'Invalid postId or userId format' });
+            return;
+        }
+        const postObjectId = new mongoose.Types.ObjectId(userId);
+        const result = await userUseCase.userDashBoard(postObjectId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error in fetching jobs:', error);
+        res.status(500).json({ success: false, message: 'Error in fetching jobs', jobs: [] });
     }
 }

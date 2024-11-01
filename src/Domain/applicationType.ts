@@ -1,6 +1,7 @@
 import { Document, ObjectId } from 'mongoose';
 
 export interface Application {
+  userId: ObjectId;     
   jobId: ObjectId;        
   name: string;           
   email: string;         
